@@ -1,0 +1,99 @@
+/* Reservations Page Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+h2 {
+    color: #343a40;
+}
+
+/* Table Styling */
+.table {
+    background-color: #fff;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.table th {
+    background-color: #343a40;
+    color: #fff;
+}
+
+.table td, .table th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Status Colors */
+.status-pending {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.status-approved {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.status-completed {
+    color: #17a2b8;
+    font-weight: bold;
+}
+
+.status-cancelled {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Action Buttons */
+.view-btn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+}
+
+.view-btn:hover {
+    background-color: #0056b3;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+}
+
+.delete-btn:hover {
+    background-color: #a71d2a;
+}
+
+/* Modal Styling */
+.modal-content {
+    border-radius: 10px;
+}
+
+.modal-header {
+    background-color: #343a40;
+    color: #fff;
+    border-bottom: none;
+}
+
+.modal-footer {
+    border-top: none;
+}
+
+.modal-title {
+    font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .table th, .table td {
+        font-size: 14px;
+    }
+}

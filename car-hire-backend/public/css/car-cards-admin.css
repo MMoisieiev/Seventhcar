@@ -1,0 +1,56 @@
+
+#mainContainer {
+    margin-top: 100px; /* Adjust the value until it looks right */
+}
+
+#carContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; /* Align items to the left */
+    gap: 20px; /* Space between items */
+}
+
+.car-card {
+    flex: 0 1 calc(25% - 20px); /* Cards take 25% of the row, minus gap */
+    margin: 10px 0; /* Vertical spacing between rows */
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    text-align: center;
+    box-sizing: border-box; /* Include padding in width/height */
+}
+.car-card img {
+    width: 100%;
+    height: auto; /* Ensures the image scales proportionally */
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.car-card .price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.car-card .plate-number {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.car-card button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.car-card button:hover {
+    background-color: #0056b3;
+}

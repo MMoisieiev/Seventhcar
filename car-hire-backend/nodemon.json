@@ -1,0 +1,4 @@
+{
+    "watch": ["server.js", "public", "pages", "partials"],
+    "ext": "js,json,html,css"
+  }

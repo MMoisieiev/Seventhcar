@@ -1,0 +1,50 @@
+<div id="carModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeModalBtn">&times;</span>
+        <h4 id="modalTitle">Add/Edit Car</h4>
+        
+        <form id="carForm">
+            <div class="form-group">
+                <label for="carName">Car Name</label>
+                <input type="text" class="form-control" id="carName" name="carName" placeholder="Enter car name" required>
+            </div>
+            <div class="form-group">
+                <label for="plateNumber">Plate Number</label>
+                <input type="text" class="form-control" id="plateNumber" name="plateNumber" placeholder="Enter plate number" required>
+            </div>
+            <div class="form-group">
+                <label for="transmission">Transmission</label>
+                <input type="text" class="form-control" id="transmission" name="transmission" placeholder="Enter transmission type" required>
+            </div>
+            <div class="form-group">
+                <label for="fuelType">Fuel Type</label>
+                <input type="text" class="form-control" id="fuelType" name="fuelType" placeholder="Enter fuel type" required>
+            </div>
+            <div class="form-group">
+                <label for="doorCount">Door Count</label>
+                <input type="number" class="form-control" id="doorCount" name="doorCount" placeholder="Enter number of doors" required>
+            </div>
+            <div class="form-group">
+                <label for="storageSpace">Storage Space</label>
+                <input type="text" class="form-control" id="storageSpace" name="storageSpace" placeholder="Enter storage space" required>
+            </div>
+            <div class="form-group">
+                <label for="price">Price</label>
+                <input type="number" class="form-control" id="price" name="price" placeholder="Enter price" required>
+            </div>
+
+            <!-- Save Car Button -->
+            <button type="button" class="btn btn-primary" id="saveCarBtn">Save</button>
+            
+            <!-- Remove Car Button (hidden by default, only appears in edit mode) -->
+            <button
+                type="button"
+                class="btn btn-danger"
+                id="removeCarBtn"
+                style="display: none; margin-left: 10px;"
+            >
+                Remove Car
+            </button>
+        </form>
+    </div>
+</div>
