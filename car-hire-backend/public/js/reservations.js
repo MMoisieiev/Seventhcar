@@ -14,7 +14,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td>${reservation.customer_name}</td>
                         <td>${reservation.plate_number}</td>
                         <td>${reservation.start_date}</td>
+                        <td>${reservation.start_time}</td>
                         <td>${reservation.end_date}</td>
+                        <td>${reservation.end_time}</td>
                         <td>€${reservation.total_price}</td>
                         <td class="status-${reservation.status.toLowerCase()}">${reservation.status}</td>
                         <td>
@@ -71,7 +73,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td>${reservation.customer_name}</td>
                         <td>${reservation.plate_number}</td>
                         <td>${reservation.start_date}</td>
+                        <td>${reservation.start_time}</td>
                         <td>${reservation.end_date}</td>
+                        <td>${reservation.end_time}</td>
                         <td>€${reservation.total_price}</td>
                         <td class="status-${reservation.status.toLowerCase()}">${reservation.status}</td>
                         <td>

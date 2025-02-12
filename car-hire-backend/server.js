@@ -131,9 +131,21 @@ app.get('/api/reservations', (req, res) => {
             console.error('Database error:', err);
             return res.status(500).json({ error: 'Server error' });
         }
+
+        // Manually transform each row's date fields
+        results.forEach(row => {
+            if (row.start_date) {
+                row.start_date = row.start_date.toISOString().split('T')[0];
+            }
+            if (row.end_date) {
+                row.end_date = row.end_date.toISOString().split('T')[0];
+            }
+        });
+
         res.json(results);
     });
 });
+
 
 // Fetch a single reservation by ID
 app.get('/api/reservations/:id', (req, res) => {
@@ -158,6 +170,7 @@ app.get('/api/reservations/:id', (req, res) => {
         res.json(reservation);
     });
 });
+
 
 // Edit a reservation 
 app.put('/api/reservations/:id', (req, res) => {
