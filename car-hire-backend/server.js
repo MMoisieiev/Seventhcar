@@ -358,15 +358,15 @@ app.get('/assets/placeholder.jpg', (req, res) => {
 app.delete('/api/cars/:plateNumber', (req, res) => {
     const plateNumber = req.params.plateNumber;
     db.query('DELETE FROM cars WHERE plate_number = ?', [plateNumber], (err, result) => {
-      if (err) {
-        return res.status(500).json({ success: false, message: 'Server error' });
-      }
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ success: false, message: 'Car not found' });
-      }
-      res.json({ success: true, message: 'Car removed successfully' });
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Server error' });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Car not found' });
+        }
+        res.json({ success: true, message: 'Car removed successfully' });
     });
-  });
+});
 
 
 
@@ -379,27 +379,27 @@ app.delete('/api/cars/:plateNumber', (req, res) => {
 // Utility to format JS Date => 'YYYY-MM-DD'
 function formatDate(dateObj) {
     const yyyy = dateObj.getFullYear();
-    const mm   = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const dd   = String(dateObj.getDate()).padStart(2, '0');
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(dateObj.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
-  }
-  
-  // GET /api/availability?year=YYYY&month=MM
-  app.get('/api/availability', (req, res) => {
-    const yearParam  = parseInt(req.query.year, 10);
+}
+
+// GET /api/availability?year=YYYY&month=MM
+app.get('/api/availability', (req, res) => {
+    const yearParam = parseInt(req.query.year, 10);
     const monthParam = parseInt(req.query.month, 10);
-  
+
     if (!yearParam || !monthParam || monthParam < 1 || monthParam > 12) {
-      return res.status(400).json({ error: "Please provide valid 'year' and 'month' (1..12)." });
+        return res.status(400).json({ error: "Please provide valid 'year' and 'month' (1..12)." });
     }
-  
+
     // Build the start/end for that month
     // e.g., if year=2025, month=2 => '2025-02-01' to '2025-02-28/29'
     const startDate = new Date(yearParam, monthParam - 1, 1); // JS months are 0-based
-    const endDate   = new Date(yearParam, monthParam, 0);     // day=0 => last day of that month
-    const startStr  = formatDate(startDate); // 'YYYY-MM-DD'
-    const endStr    = formatDate(endDate);
-  
+    const endDate = new Date(yearParam, monthParam, 0);     // day=0 => last day of that month
+    const startStr = formatDate(startDate); // 'YYYY-MM-DD'
+    const endStr = formatDate(endDate);
+
     // Use one query:
     // 1) `allDays` CTE produces each date from startStr..endStr
     // 2) `totalCars` CTE fetches the total # of cars from the 'cars' table
@@ -408,7 +408,7 @@ function formatDate(dateObj) {
     // 5) freeCars = totalCars - COUNT(r.id)
     // 6) GROUP BY each day => daily results
     // 7) ORDER BY day
-  
+
     const sql = `
       WITH RECURSIVE allDays (day) AS (
          SELECT ? AS day
@@ -432,20 +432,64 @@ function formatDate(dateObj) {
       GROUP BY allDays.day, totalCars.total
       ORDER BY allDays.day
     `;
-  
+
     // We'll pass [startStr, endStr] to fill in the placeholders
     db.query(sql, [startStr, endStr], (err, results) => {
+        if (err) {
+            console.error("Error in availability query:", err);
+            return res.status(500).json({ error: 'Database error in availability query.' });
+        }
+
+        // MySQL returns rows like: [{ date: '2025-02-01', freeCars: 5 }, ...]
+        // Send them directly in JSON
+        res.json(results);
+    });
+});
+
+// GET /api/caravailability/:plateNumber
+// Returns an array of objects, each with { start: "YYYY-MM-DD", end: "YYYY-MM-DD" }
+// for all 'Pending' or 'Approved' reservations on this car.
+app.get("/api/caravailability/:plateNumber", (req, res) => {
+    const plateNumber = req.params.plateNumber;
+  
+    const sql = `
+      SELECT start_date, end_date
+        FROM reservations
+       WHERE plate_number = ?
+         AND status IN ('Pending','Approved')
+    `;
+  
+    db.query(sql, [plateNumber], (err, results) => {
       if (err) {
-        console.error("Error in availability query:", err);
-        return res.status(500).json({ error: 'Database error in availability query.' });
+        console.error("Database error:", err);
+        return res.status(500).json({ error: "Server error" });
       }
   
-      // MySQL returns rows like: [{ date: '2025-02-01', freeCars: 5 }, ...]
-      // Send them directly in JSON
-      res.json(results);
+      // Each row is { start_date: <Date>, end_date: <Date> }
+      // We'll format them as "YYYY-MM-DD" strings in an array of { start, end }
+      const bookedRanges = results.map(row => {
+        return {
+          start: formatDate(row.start_date),
+          end:   formatDate(row.end_date)
+        };
+      });
+  
+      // Return them
+      res.json(bookedRanges);
     });
   });
   
+  // Helper: format a MySQL date => "YYYY-MM-DD"
+  function formatDate(dateObj) {
+    // If your columns are DATE types, row.start_date is probably a JS Date already
+    // (with time set to midnight). If you want a string: 
+    const yyyy = dateObj.getFullYear();
+    const mm   = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const dd   = String(dateObj.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  
+
 
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
