@@ -374,84 +374,78 @@ app.delete('/api/cars/:plateNumber', (req, res) => {
 // Example of a REAL /api/availability route (server.js)
 
 // GET /api/availability?year=YYYY&month=MM (1..12)
-app.get('/api/availability', async (req, res) => {
+// In your server.js or routes file (Node + Express + MySQL 8.0+)
+
+// Utility to format JS Date => 'YYYY-MM-DD'
+function formatDate(dateObj) {
+    const yyyy = dateObj.getFullYear();
+    const mm   = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const dd   = String(dateObj.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
   
+  // GET /api/availability?year=YYYY&month=MM
+  app.get('/api/availability', (req, res) => {
     const yearParam  = parseInt(req.query.year, 10);
     const monthParam = parseInt(req.query.month, 10);
-
-    if (!yearParam || !monthParam) {
-        return res.status(400).json({ error: "Please provide valid 'year' and 'month' query params." });
+  
+    if (!yearParam || !monthParam || monthParam < 1 || monthParam > 12) {
+      return res.status(400).json({ error: "Please provide valid 'year' and 'month' (1..12)." });
     }
-
-    // 1. Get total cars from the 'cars' table
-    //    e.g., SELECT COUNT(*) AS total FROM cars
-    let totalCars;
-    try {
-        totalCars = await new Promise((resolve, reject) => {
-            db.query('SELECT COUNT(*) AS total FROM cars', (err, results) => {
-                if (err) return reject(err);
-                resolve(results[0].total);
-                                                                                                
-            });
-        });
-    } catch (err) {
-        console.error("Error fetching total cars:", err);
-        return res.status(500).json({ error: 'Database error (getting total cars).' });
-    }
-    // After "resolve(results[0].total);"
-    console.log("Total cars from DB:", totalCars);
-    // 2. Build start/end date for the given month/year
-    const startOfMonth = new Date(yearParam, monthParam - 1, 1);
-    const endOfMonth   = new Date(yearParam, monthParam, 0); // day=0 => last day of the previous monthParam
-
-    // Helper to format a JS Date => 'YYYY-MM-DD'
-    function formatDate(dateObj) {
-        const yyyy = dateObj.getFullYear();
-        const mm   = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const dd   = String(dateObj.getDate()).padStart(2, '0');
-        return `${yyyy}-${mm}-${dd}`;
-    }
-
-    // 3. Loop day by day
-    const availabilityData = [];
-    let currentDay = new Date(startOfMonth);
-
-    while (currentDay <= endOfMonth) {
-        const dateStr = formatDate(currentDay);
-
-        // 4. Count how many reservations overlap this day 
-        //    (for statuses that occupy a car, e.g., 'Pending', 'Approved')
-        let usedCars = 0;
-        try {
-            usedCars = await new Promise((resolve, reject) => {
-                const sql = `
-                    SELECT COUNT(*) AS c
-                      FROM reservations
-                     WHERE status IN ('Pending','Approved')
-                       AND start_date <= ?
-                       AND end_date >= ?
-                `;
-                db.query(sql, [dateStr, dateStr], (err, results) => {
-                    if (err) return reject(err);
-                    resolve(results[0].c);
-                });
-            });
-        } catch (err) {
-            console.error("Error counting reservations for", dateStr, err);
-            return res.status(500).json({ error: 'Database error (counting reservations).' });
-        }
-
-        // 5. freeCars = totalCars - usedCars
-        const freeCars = totalCars - usedCars;
-        availabilityData.push({ date: dateStr, freeCars });
-
-        // Move to next day
-        currentDay.setDate(currentDay.getDate() + 1);
-    }
-
-    // 6. Return the results
-    res.json(availabilityData);
-});
+  
+    // Build the start/end for that month
+    // e.g., if year=2025, month=2 => '2025-02-01' to '2025-02-28/29'
+    const startDate = new Date(yearParam, monthParam - 1, 1); // JS months are 0-based
+    const endDate   = new Date(yearParam, monthParam, 0);     // day=0 => last day of that month
+    const startStr  = formatDate(startDate); // 'YYYY-MM-DD'
+    const endStr    = formatDate(endDate);
+  
+    // Use one query:
+    // 1) `allDays` CTE produces each date from startStr..endStr
+    // 2) `totalCars` CTE fetches the total # of cars from the 'cars' table
+    // 3) We CROSS JOIN totalCars => we have that total for every row
+    // 4) We LEFT JOIN reservations => daily usedCars
+    // 5) freeCars = totalCars - COUNT(r.id)
+    // 6) GROUP BY each day => daily results
+    // 7) ORDER BY day
+  
+    const sql = `
+      WITH RECURSIVE allDays (day) AS (
+         SELECT ? AS day
+         UNION ALL
+         SELECT DATE_ADD(day, INTERVAL 1 DAY)
+         FROM allDays
+         WHERE day < ?
+      ),
+      totalCars AS (
+         SELECT COUNT(*) AS total FROM cars
+      )
+      SELECT 
+         allDays.day AS date,
+         totalCars.total - COUNT(r.id) AS freeCars
+      FROM allDays
+      CROSS JOIN totalCars
+      LEFT JOIN reservations r
+             ON r.status IN ('Pending','Approved')
+            AND r.start_date <= allDays.day
+            AND r.end_date   >= allDays.day
+      GROUP BY allDays.day, totalCars.total
+      ORDER BY allDays.day
+    `;
+  
+    // We'll pass [startStr, endStr] to fill in the placeholders
+    db.query(sql, [startStr, endStr], (err, results) => {
+      if (err) {
+        console.error("Error in availability query:", err);
+        return res.status(500).json({ error: 'Database error in availability query.' });
+      }
+  
+      // MySQL returns rows like: [{ date: '2025-02-01', freeCars: 5 }, ...]
+      // Send them directly in JSON
+      res.json(results);
+    });
+  });
+  
 
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
