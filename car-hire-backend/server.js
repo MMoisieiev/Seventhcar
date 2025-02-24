@@ -367,6 +367,93 @@ app.delete('/api/cars/:plateNumber', (req, res) => {
       res.json({ success: true, message: 'Car removed successfully' });
     });
   });
+
+
+
+//-------------------------------------------------------------CALENDAR ---------------------------------------------------------------------------------------------
+// Example of a REAL /api/availability route (server.js)
+
+// GET /api/availability?year=YYYY&month=MM (1..12)
+app.get('/api/availability', async (req, res) => {
+  
+    const yearParam  = parseInt(req.query.year, 10);
+    const monthParam = parseInt(req.query.month, 10);
+
+    if (!yearParam || !monthParam) {
+        return res.status(400).json({ error: "Please provide valid 'year' and 'month' query params." });
+    }
+
+    // 1. Get total cars from the 'cars' table
+    //    e.g., SELECT COUNT(*) AS total FROM cars
+    let totalCars;
+    try {
+        totalCars = await new Promise((resolve, reject) => {
+            db.query('SELECT COUNT(*) AS total FROM cars', (err, results) => {
+                if (err) return reject(err);
+                resolve(results[0].total);
+                                                                                                
+            });
+        });
+    } catch (err) {
+        console.error("Error fetching total cars:", err);
+        return res.status(500).json({ error: 'Database error (getting total cars).' });
+    }
+    // After "resolve(results[0].total);"
+    console.log("Total cars from DB:", totalCars);
+    // 2. Build start/end date for the given month/year
+    const startOfMonth = new Date(yearParam, monthParam - 1, 1);
+    const endOfMonth   = new Date(yearParam, monthParam, 0); // day=0 => last day of the previous monthParam
+
+    // Helper to format a JS Date => 'YYYY-MM-DD'
+    function formatDate(dateObj) {
+        const yyyy = dateObj.getFullYear();
+        const mm   = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd   = String(dateObj.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // 3. Loop day by day
+    const availabilityData = [];
+    let currentDay = new Date(startOfMonth);
+
+    while (currentDay <= endOfMonth) {
+        const dateStr = formatDate(currentDay);
+
+        // 4. Count how many reservations overlap this day 
+        //    (for statuses that occupy a car, e.g., 'Pending', 'Approved')
+        let usedCars = 0;
+        try {
+            usedCars = await new Promise((resolve, reject) => {
+                const sql = `
+                    SELECT COUNT(*) AS c
+                      FROM reservations
+                     WHERE status IN ('Pending','Approved')
+                       AND start_date <= ?
+                       AND end_date >= ?
+                `;
+                db.query(sql, [dateStr, dateStr], (err, results) => {
+                    if (err) return reject(err);
+                    resolve(results[0].c);
+                });
+            });
+        } catch (err) {
+            console.error("Error counting reservations for", dateStr, err);
+            return res.status(500).json({ error: 'Database error (counting reservations).' });
+        }
+
+        // 5. freeCars = totalCars - usedCars
+        const freeCars = totalCars - usedCars;
+        availabilityData.push({ date: dateStr, freeCars });
+
+        // Move to next day
+        currentDay.setDate(currentDay.getDate() + 1);
+    }
+
+    // 6. Return the results
+    res.json(availabilityData);
+});
+
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // Start the server
 app.listen(port, () => {
