@@ -38,16 +38,24 @@ db.connect((err) => {
     console.log('Connected to the database');
 });
 //------------------------------------------------------------------------ROUTES-------------------------------------------------------
-// Route: Login Page
+// 1) Home Page (root path)
 app.get('/', (req, res) => {
+    // index.html is your home page
+    res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
+});
+
+// 2) Login Page
+app.get('/login', (req, res) => {
+    // login.html is your login page
     res.sendFile(path.join(__dirname, 'public', 'pages', 'login.html'));
 });
-// Route: Cars Page
+
+// 3) Cars Page
 app.get('/cars', isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pages', 'cars.html'));
 });
 
-// Route: Reservations Page (Admin Side)
+// 4) Reservations Page (Admin Side)
 app.get('/reservations', isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pages', 'reservations.html'));
 });

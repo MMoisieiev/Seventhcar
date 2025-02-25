@@ -8,7 +8,23 @@
     <link rel="stylesheet" href="/css/reservations.css" />
 </head>
 <body>
-    <!-- ...Your existing navbar, etc... -->
+    <!-- Navigation Bar (fetched from partial) -->
+<div id="navbar-placeholder"></div>
+<script>
+  fetch("/partials/navbar.html")
+    .then(response => response.text())
+    .then(html => {
+      // Insert the fetched HTML into the page
+      document.getElementById("navbar-placeholder").innerHTML = html;
+
+      // Now dynamically load the navbar.js file
+      // so it runs after the navbar HTML is in the DOM
+      const script = document.createElement('script');
+      script.src = "/js/navbar.js"; // Adjust path if necessary
+      document.body.appendChild(script);
+    })
+    .catch(error => console.error("Error loading navbar:", error));
+</script>
 
     <div class="container mt-5">
         <h2 class="mb-4">Manage Reservations</h2>
@@ -30,13 +46,15 @@
             </select>
         </div>
 
-        <!-- Toggle Button -->
-        <button id="toggleViewBtn" class="btn btn-secondary mb-3">
-            Show Calendar Availability
-        </button>
-        <button id="addReservationBtn" class="btn btn-success">
-            Add New Reservation
-        </button>
+        <div class="button-row">
+            <button id="addReservationBtn" class="btn btn-success">
+              Add New Reservation
+            </button>
+            <button id="toggleViewBtn" class="btn btn-secondary">
+              Show Calendar Availability
+            </button>
+        </div>
+
 
         <!-- Table Container -->
         <div id="tableContainer">

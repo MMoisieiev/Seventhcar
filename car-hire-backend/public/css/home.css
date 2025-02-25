@@ -1,0 +1,42 @@
+/* home.css */
+
+/* The booking box with a white background, some rounding, etc. */
+.booking-box {
+  background-color: #fff;
+  border-radius: 8px;
+  max-width: 800px; /* set a max width so it doesn't get too large */
+  margin: 0 auto;   /* center horizontally */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 3;       /* above hero overlay */
+}
+
+/* If you want the form fields to have consistent styling: */
+.booking-box .form-control {
+  font-size: 0.95rem;
+}
+
+/* For the row of radio-like buttons (Car rental / Transfers / Tours) */
+.btn-group-toggle .btn {
+  border-radius: 4px;
+  margin-right: 5px;
+}
+.btn-group-toggle .btn:last-child {
+  margin-right: 0;
+}
+
+/* Adjust heading & subheading in hero-content if needed */
+.hero-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+.hero-content p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+/* Example for the entire hero if you want more spacing */
+.hero-section {
+  padding: 2rem;
+  /* rest of your existing hero code... */
+}

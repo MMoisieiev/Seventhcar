@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Future (or current) day color coding
         if (freeCars === 0) {
           dayCell.style.backgroundColor = "red";
-        } else if (freeCars <= 1) {
+        } else if (freeCars <= 4) {
           dayCell.style.backgroundColor = "orange";
         } else {
           dayCell.style.backgroundColor = "green";

@@ -1,50 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
+
+<link
+href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+rel="stylesheet"
+/>
+
+   <!-- Navigation Bar (fetched from partial) -->
+<div id="navbar-placeholder"></div>
+<script>
+  fetch("/partials/navbar.html")
+    .then(response => response.text())
+    .then(html => {
+      document.getElementById("navbar-placeholder").innerHTML = html;
+
+      // Now that navbar HTML is in the DOM, load navbar.js
+      const script = document.createElement("script");
+      script.src = "/js/navbar.js";
+      document.body.appendChild(script);
+    })
+    .catch(error => console.error("Error loading navbar:", error));
+</script>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Seventh Car Hire</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>Seventh Car Hire - Home</title>
+  <!-- Link to your external CSS -->
+  <link rel="stylesheet" href="/css/home.css" />
+  <!-- (Optional) Link to a font or icon library, e.g. Google Fonts or Font Awesome -->
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <div id="navbar-placeholder"></div>
-    <script>
-        fetch('/partials/navbar.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('navbar-placeholder').innerHTML = data;
-            });
-    </script>
-    <script src="/js/navbar.js"></script> 
 
-    <!-- Login Form -->
-    <div class="container mt-5 pt-5" style="max-width: 400px;">
-        <div class="card shadow-lg">
-            <div class="card-body">
-                <h3 class="card-title text-center">Login</h3>
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
-                    </div>
-                    <div id="error-message" class="text-danger text-center" style="display: none;">Wrong username/password</div>
-                    <button type="submit" class="btn btn-primary btn-block">Login</button>
-                </form>
-            </div>
-        </div>
+  <div class="hero-section">
+    <div class="overlay"></div>
+    <div class="hero-content">
+      <h1>Welcome to Seventh Car Hire</h1>
+      <p>Experience the best car rental service in town</p>
+      <button class="btn-primary">Book Now</button>
     </div>
+  </div>
 
-    <!-- Bootstrap JS & jQuery -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+  <section class="info-section">
+    <h2>Why Choose Us?</h2>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac vestibulum libero, 
+    sit amet dictum justo. Morbi non tellus eu ipsum vehicula euismod eget vel massa.</p>
+  </section>
 
-    <!-- Login JavaScript -->
-    <script src="/js/login-script.js"></script> <!-- Update this path accordingly -->
+  <!-- Add more sections, footers, etc. as needed -->
+
 </body>
 </html>

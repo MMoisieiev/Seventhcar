@@ -1,8 +1,7 @@
 // navbar.js
-console.log("Running navbar setup logic now...");
+
 
 (function setupNavbar() {
-  console.log("navbar.js DOMContentLoaded callback fired!");
 
   // Define the HTML for admin links
   const adminLinks = `
@@ -20,7 +19,7 @@ console.log("Running navbar setup logic now...");
   // Define the HTML for public (not logged in) links
   const publicLinks = `
     <li class="nav-item active">
-      <a class="nav-link font-weight-bold" href="index.html" style="font-size: 1.1rem;">Home</a>
+      <a class="nav-link font-weight-bold" href="/" style="font-size: 1.1rem;">Home</a>
     </li>
     <li class="nav-item">
       <a class="nav-link font-weight-bold" href="car-listing.html" style="font-size: 1.1rem;">Vehicles</a>
@@ -38,7 +37,7 @@ console.log("Running navbar setup logic now...");
       <a class="nav-link font-weight-bold" href="#" style="font-size: 1.1rem;">About Us</a>
     </li>
     <li class="nav-item" id="login-item">
-      <a class="nav-link font-weight-bold" href="login.html" style="font-size: 1.1rem;">Login</a>
+      <a class="nav-link font-weight-bold" href="/login" style="font-size: 1.1rem;">Login</a>
     </li>
   `;
 
