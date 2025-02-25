@@ -1,42 +1,212 @@
-/* home.css */
-
-/* The booking box with a white background, some rounding, etc. */
-.booking-box {
-  background-color: #fff;
-  border-radius: 8px;
-  max-width: 800px; /* set a max width so it doesn't get too large */
-  margin: 0 auto;   /* center horizontally */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  position: relative;
-  z-index: 3;       /* above hero overlay */
-}
-
-/* If you want the form fields to have consistent styling: */
-.booking-box .form-control {
-  font-size: 0.95rem;
-}
-
-/* For the row of radio-like buttons (Car rental / Transfers / Tours) */
-.btn-group-toggle .btn {
-  border-radius: 4px;
-  margin-right: 5px;
-}
-.btn-group-toggle .btn:last-child {
-  margin-right: 0;
-}
-
-/* Adjust heading & subheading in hero-content if needed */
-.hero-content h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-}
-.hero-content p {
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
-}
-
-/* Example for the entire hero if you want more spacing */
-.hero-section {
-  padding: 2rem;
-  /* rest of your existing hero code... */
-}
+/* RESET / BOX-SIZING */
+/* The snippet sets box-sizing for everything */
+html, body, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* SCROLLBAR (from snippet) */
+  ::-webkit-scrollbar {
+    width: 15px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1c7fec;
+    border: 2px solid #f8f8f8;
+    border-radius: 100vw;
+  }
+  ::-webkit-scrollbar-track {
+    background-color: #f8f8f8;
+    margin-block: 2px;
+  }
+  
+  /* FONT FAMILY & BODY */
+  body {
+    font-family: Poppins, sans-serif; /* from snippet */
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #212529;
+    background-color: #fff;
+    text-align: left;
+  }
+  
+  /* HERO SECTION */
+  .hero-section {
+    width: 100%;
+    height: 60vh; /* so the text is higher up, and booking box can overlap */
+    background: url("/assets/your-background-image.jpg") no-repeat center center/cover;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Semi-transparent overlay on hero */
+  .hero-section .overlay {
+    position: absolute;
+    top: 0; 
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+  }
+  
+  /* Hero text container */
+  .hero-content {
+    position: relative;
+    color: #fff;
+    text-align: center;
+    z-index: 2;  /* above overlay */
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  /* Hero heading / subtext */
+  .hero-content h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+  }
+  .hero-content p {
+    font-size: 1.1rem;
+    margin-bottom: 1rem; /* reduces gap */
+  }
+  
+  /* Example hero button if needed */
+  .btn-primary {
+    background-color: #007bff;
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+  
+  /* BOOKING CONTAINER (overlaps hero using negative margin) */
+  .booking-container {
+    width: 70%;              /* tweak to 60-70% as needed */
+    max-width: 1100px;
+    margin: -50px auto 2rem; /* negative top margin => overlap the hero */
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    position: relative;
+    z-index: 3; /* above hero overlay */
+  }
+  
+  /* Slightly smaller form controls inside booking container */
+  .booking-container .form-control {
+    font-size: 0.95rem;
+    padding: 0.4rem 0.75rem;
+    height: auto;
+  }
+  
+  /* Example row 1: Island + Drop Off side by side */
+  .booking-row-1 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .booking-row-1 .field-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+  }
+  .booking-row-1 label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  
+  /* Example row 2: pickup date/time, return date/time, driver's age, START button on the right */
+  .booking-row-2 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+  }
+  .booking-row-2 .field-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+  }
+  .booking-row-2 label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  
+  /* START button => far right with margin-left: auto */
+  .start-btn {
+    margin-left: auto;
+    background-color: #28a745;
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+  }
+  .start-btn:hover {
+    background-color: #218838;
+  }
+  
+  /* Edit Reservation link below row 2, right-aligned */
+  .edit-reservation {
+    text-align: right;
+    margin-top: 0.5rem;
+  }
+  .edit-reservation a {
+    color: #007bff;
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+  .edit-reservation a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Additional TAIL (like info-section) */
+  .info-section {
+    padding: 2rem;
+    text-align: center;
+  }
+  .info-section h2 {
+    margin-bottom: 1rem;
+  }
+  .info-section p {
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.6;
+    color: #333;
+  }
+  
+  /* Additional bottom-section triangle, if you want from snippet
+     Example: .homepage-rotator .bottom-section { ... }
+     and the :after pseudo-element to create a triangle
+  */
+  .homepage-rotator .bottom-section {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    z-index: 10;
+  }
+  .homepage-rotator .bottom-section:after {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 35px solid transparent;
+    border-right: 35px solid transparent;
+    border-top: 35px solid #fff;
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    z-index: 10;
+    transform: translateX(-50%);
+  }
+  

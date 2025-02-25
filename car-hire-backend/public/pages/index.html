@@ -1,52 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<link
-href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-rel="stylesheet"
-/>
-
-   <!-- Navigation Bar (fetched from partial) -->
-<div id="navbar-placeholder"></div>
-<script>
-  fetch("/partials/navbar.html")
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById("navbar-placeholder").innerHTML = html;
-
-      // Now that navbar HTML is in the DOM, load navbar.js
-      const script = document.createElement("script");
-      script.src = "/js/navbar.js";
-      document.body.appendChild(script);
-    })
-    .catch(error => console.error("Error loading navbar:", error));
-</script>
-
 <head>
   <meta charset="UTF-8" />
   <title>Seventh Car Hire - Home</title>
-  <!-- Link to your external CSS -->
+
+  <!-- Bootstrap CSS -->
+  <link
+    rel="stylesheet"
+    href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+  />
+
+  <!-- Single CSS file handling hero + booking -->
   <link rel="stylesheet" href="/css/home.css" />
-  <!-- (Optional) Link to a font or icon library, e.g. Google Fonts or Font Awesome -->
 </head>
 <body>
+  <!-- NAVBAR -->
+  <div id="navbar-placeholder"></div>
+  <script>
+    fetch("/partials/navbar.html")
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById("navbar-placeholder").innerHTML = html;
+        const script = document.createElement("script");
+        script.src = "/js/navbar.js";
+        document.body.appendChild(script);
+      })
+      .catch(error => console.error("Error loading navbar:", error));
+  </script>
 
+  <!-- HERO -->
   <div class="hero-section">
     <div class="overlay"></div>
     <div class="hero-content">
-      <h1>Welcome to Seventh Car Hire</h1>
-      <p>Experience the best car rental service in town</p>
-      <button class="btn-primary">Book Now</button>
+      <h1>Drive Your Dream on Mahé &amp; Praslin</h1>
+      <p>Choose from our range of top-quality vehicles for an unforgettable ride</p>
+      <!-- No big button here to reduce spacing. If you want, you can add a small button. -->
     </div>
   </div>
 
+  <!-- BOOKING CONTAINER (overlaps hero) -->
+  <div class="booking-container">
+    <form>
+      <!-- ROW 1: Island & Drop Off Location -->
+      <div class="booking-row-1">
+        <div class="field-group">
+          <label for="island">Island</label>
+          <select id="island" class="form-control">
+            <option disabled selected>Select location...</option>
+            <option value="Mahe">Mahé</option>
+            <option value="Praslin">Praslin</option>
+            <option value="LaDigue">La Digue</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="dropOff">Drop Off Location</label>
+          <select id="dropOff" class="form-control">
+            <option disabled selected>Select location...</option>
+            <option value="Mahe">Mahé</option>
+            <option value="Praslin">Praslin</option>
+            <option value="LaDigue">La Digue</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ROW 2: pickup date/time, return date/time, driver age, and START button on far right -->
+      <div class="booking-row-2">
+        <!-- Pickup Date -->
+        <div class="field-group">
+          <label for="pickupDate">Pickup date</label>
+          <input type="text" id="pickupDate" class="form-control" placeholder="dd/mm/yyyy" />
+        </div>
+
+        <!-- Pickup Time -->
+        <div class="field-group">
+          <label for="pickupTime">Pickup time!</label>
+          <input type="text" id="pickupTime" class="form-control" placeholder="Time" />
+        </div>
+
+        <!-- Return Date -->
+        <div class="field-group">
+          <label for="returnDate">Return date</label>
+          <input type="text" id="returnDate" class="form-control" placeholder="dd/mm/yyyy" />
+        </div>
+
+        <!-- Return Time -->
+        <div class="field-group">
+          <label for="returnTime">Return time</label>
+          <input type="text" id="returnTime" class="form-control" placeholder="Time" />
+        </div>
+
+        <!-- Driver's Age -->
+        <div class="field-group">
+          <label for="driverAge">Driver's Age</label>
+          <select id="driverAge" class="form-control">
+            <option disabled selected>Select driver's age</option>
+            <option value="18">18-20</option>
+            <option value="35">21-70</option>
+            <option value="71">71-99</option>
+          </select>
+        </div>
+
+        <!-- START Button (far right) -->
+        <button type="submit" class="start-btn">START</button>
+      </div>
+
+      <!-- "Edit Reservation" below row 2, aligned right -->
+      <div class="edit-reservation">
+        <a href="#">Edit Reservation</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- INFO SECTION -->
   <section class="info-section">
     <h2>Why Choose Us?</h2>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac vestibulum libero, 
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac vestibulum libero,
     sit amet dictum justo. Morbi non tellus eu ipsum vehicula euismod eget vel massa.</p>
   </section>
 
-  <!-- Add more sections, footers, etc. as needed -->
-
+  <!-- Optional Bootstrap JS -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js">
+  </script>
 </body>
 </html>
