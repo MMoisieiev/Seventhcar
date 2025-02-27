@@ -94,7 +94,29 @@
 
         <!-- START Button and Edit Reservation Container -->
         <div class="start-button-container">
-          <button type="submit" class="start-btn">START</button>
+          <!-- START Button -->
+<button type="button" class="start-btn" id="startBooking">START</button>
+
+<script>
+    document.getElementById("startBooking").addEventListener("click", function () {
+        const island = document.getElementById("island").value;
+        const dropOff = document.getElementById("dropOff").value;
+        const pickupDate = document.getElementById("pickupDate").value;
+        const pickupTime = document.getElementById("pickupTime").value;
+        const returnDate = document.getElementById("returnDate").value;
+        const returnTime = document.getElementById("returnTime").value;
+
+        if (!island || !dropOff || !pickupDate || !pickupTime || !returnDate || !returnTime) {
+            alert("Please fill in all fields before proceeding.");
+            return;
+        }
+
+        // Redirect to the booking page with form data as URL parameters
+        const url = `/bookingpage?island=${encodeURIComponent(island)}&dropOff=${encodeURIComponent(dropOff)}&pickupDate=${pickupDate}&pickupTime=${pickupTime}&returnDate=${returnDate}&returnTime=${returnTime}`;
+        window.location.href = url;
+    });
+</script>
+
           <div class="edit-reservation">
             <a href="#">Edit Reservation</a>
           </div>
