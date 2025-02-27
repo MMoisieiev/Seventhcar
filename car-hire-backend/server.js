@@ -276,6 +276,31 @@ app.post('/api/reservations', (req, res) => {
 
 //-----------------------------------------------------CARS-----------------------------------------------------------------------------------------------------------------------------
 
+app.get('/api/cars/available', (req, res) => {
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+        return res.status(400).json({ error: 'Missing startDate or endDate' });
+    }
+
+    const sql = `
+        SELECT * FROM cars 
+        WHERE plate_number NOT IN (
+            SELECT plate_number FROM reservations
+            WHERE (start_date <= ? AND end_date >= ?)
+            AND status IN ('Pending', 'Approved')
+        )
+    `;
+
+    db.query(sql, [endDate, startDate], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Server error' });
+        }
+
+        res.json(results);
+    });
+});
 
 
 // Route: Add Car (POST /api/cars)
