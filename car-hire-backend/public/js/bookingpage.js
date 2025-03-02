@@ -1,82 +1,127 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const carListContainer = document.getElementById("carList");
-    
-    function getQueryParams() {
-        const params = new URLSearchParams(window.location.search);
-        return {
-            island: params.get("island"),
-            dropOff: params.get("dropOff"),
-            pickupDate: params.get("pickupDate"),
-            pickupTime: params.get("pickupTime"),
-            returnDate: params.get("returnDate"),
-            returnTime: params.get("returnTime")
-        };
-    }
+  const carListContainer = document.getElementById("carList");
+  const bookingTabs = document.querySelectorAll("#bookingTabs .nav-link");
+  let currentStep = "vehicles";
 
-    const bookingData = getQueryParams();
-    
-    // Display booking summary
-    document.getElementById("bookingSummary").innerHTML = `
-        <strong>Island:</strong> ${bookingData.island} <br>
-        <strong>Drop-Off Location:</strong> ${bookingData.dropOff} <br>
-        <strong>Pickup:</strong> ${bookingData.pickupDate} at ${bookingData.pickupTime} <br>
-        <strong>Return:</strong> ${bookingData.returnDate} at ${bookingData.returnTime}
-    `;
+  function getQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+          island: params.get("island"),
+          dropOff: params.get("dropOff"),
+          pickupDate: params.get("pickupDate"),
+          pickupTime: params.get("pickupTime"),
+          returnDate: params.get("returnDate"),
+          returnTime: params.get("returnTime")
+      };
+  }
 
-    // Fetch available cars based on selected dates
-    fetch(`/api/cars/available?startDate=${bookingData.pickupDate}&endDate=${bookingData.returnDate}`)
-        .then(response => response.json())
-        .then(cars => {
-            carListContainer.innerHTML = "";
+  const bookingData = getQueryParams();
 
-            if (cars.length === 0) {
-                carListContainer.innerHTML = "<p>No available cars for the selected dates.</p>";
-                return;
-            }
+  document.getElementById("bookingSummary").innerHTML = `
+      <strong>Island:</strong> ${bookingData.island} <br>
+      <strong>Drop-Off Location:</strong> ${bookingData.dropOff} <br>
+      <strong>Pickup:</strong> ${bookingData.pickupDate} at ${bookingData.pickupTime} <br>
+      <strong>Return:</strong> ${bookingData.returnDate} at ${bookingData.returnTime} <br>
+      <strong>Total Price:</strong> <span id="totalPriceDisplay">Calculating...</span> EUR
+  `;
 
-            cars.forEach(car => {
-                const carList = document.createElement('div');
-                carList.classList.add('car-list'); // Container for all car cards
-                carList.innerHTML = cars.map(car => `
-                  <div class="vehicle-item car-presentation-box">
-                    <div class="img-wrap">
-                      <div class="text-wrap">
-                        <span>${car.category || 'Intermediate'} - ${car.transmission || 'Automatic'}</span>
-                        <h3 class="title">${car.car_name}</h3>
-                        <p class="description">or similar...</p>
-                      </div>
-                      <div class="car-wrap">
-                        <div class="image-container">
-                          <img src="${car.car_image_url || '/assets/placeholder.jpg'}" alt="${car.car_name}" loading="lazy">
-                        </div>
-                      </div>
-                    </div>
-                    <div class="bottom-wrap content">
-                      <ul class="features">
-                        <li class="fuel">${car.fuel_type }</li>
-                        <li class="doors">${car.door_count } door(s)</li>
-                      </ul>
-                      <div class="price-wrap">
-                        <p class="price">${car.price || '0.00'} <span>EUR / day</span></p>
-                        <p class="total-price">Total: ${car.total_price || '0.00'} <span>EUR</span></p>
-                      </div>
-                      <a href="#" class="btn-arrow button buttonReservation" data-sipp="${car.sipp || ''}" data-currency="EUR" data-price="${car.total_price || '0.00'}" data-token="${car.token || ''}" data-pricelistid="${car.pricelistid || ''}" data-sip="${car.sip || ''}">
-                        <span>Book now</span>
-                      </a>
-                    </div>
+  fetch(`/api/cars/available?startDate=${bookingData.pickupDate}&endDate=${bookingData.returnDate}`)
+      .then(response => response.json())
+      .then(cars => {
+          carListContainer.innerHTML = "";
+
+          if (cars.length === 0) {
+              carListContainer.innerHTML = "<p>No available cars for the selected dates.</p>";
+              return;
+          }
+
+          cars.forEach(car => {
+            const carCard = document.createElement('div');
+            carCard.classList.add('vehicle-item', 'car-presentation-box');
+            carCard.innerHTML = `
+              <div class="img-wrap">
+                <div class="text-wrap">
+                  <span>${car.category || 'Intermediate'} - ${car.transmission || 'Automatic'}</span>
+                  <h3 class="title">${car.car_name}</h3>
+                  <p class="description">or similar...</p>
+                </div>
+                <div class="car-wrap">
+                  <div class="image-container">
+                    <img src="${car.car_image_url || '/assets/placeholder.jpg'}" alt="${car.car_name}" loading="lazy">
                   </div>
-                `).join('');
-                
-                document.body.appendChild(carList); // Append the car list to the page
-                carListContainer.appendChild(carCard);
-            });
+                </div>
+              </div>
+              <div class="bottom-wrap content">
+                <ul class="features">
+                  <li class="fuel">${car.fuel_type}</li>
+                  <li class="doors">${car.door_count} door(s)</li>
+                </ul>
+                <div class="price-wrap">
+                  <p class="price">${car.price || '0.00'} <span>EUR / day</span></p>
+                  <p class="total-price">Total: <span class="car-total-price" data-plate="${car.plate_number}">Calculating...</span> EUR</p>
+                </div>
+                <button class="btn-arrow button book-now" data-plate="${car.plate_number}">
+                  <span>Book now</span>
+                </button>
+              </div>
+            `;
+            carListContainer.appendChild(carCard);
+          });
 
-            document.querySelectorAll(".book-now").forEach(button => {
-                button.addEventListener("click", function () {
-                    const plateNumber = this.getAttribute("data-plate");
-                    window.location.href = `/confirmation.html?plate=${plateNumber}&${window.location.search.substring(1)}`;
-                });
-            });
-        })
-        .catch(error => console.error("Error fetching available cars:", error));
+          document.querySelectorAll(".book-now").forEach(button => {
+              button.addEventListener("click", function () {
+                  const selectedPlate = this.getAttribute("data-plate");
+                  document.getElementById("editPlateNumber").value = selectedPlate;
+                  document.getElementById("editStartDate").value = bookingData.pickupDate;
+                  document.getElementById("editStartTime").value = bookingData.pickupTime;
+                  document.getElementById("editEndDate").value = bookingData.returnDate;
+                  document.getElementById("editEndTime").value = bookingData.returnTime;
+                  autoCalculatePrice();
+                  switchTab("insurance");
+              });
+          });
+
+          document.querySelectorAll(".car-total-price").forEach(async (priceElem) => {
+              const plate = priceElem.getAttribute("data-plate");
+              try {
+                  const res = await fetch(`/api/cars/${plate}`);
+                  if (!res.ok) throw new Error("Failed to fetch car data");
+                  const carData = await res.json();
+                  const startDate = new Date(`${bookingData.pickupDate}T${bookingData.pickupTime}`);
+                  const endDate = new Date(`${bookingData.returnDate}T${bookingData.returnTime}`);
+                  const diffMs = endDate - startDate;
+                  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                  const totalPrice = diffDays * carData.price;
+                  priceElem.textContent = totalPrice.toFixed(2);
+              } catch (error) {
+                  console.error("Error calculating total price:", error);
+                  priceElem.textContent = "Error";
+              }
+          });
+      })
+      .catch(error => console.error("Error fetching available cars:", error));
+
+  function switchTab(tabName) {
+      document.querySelector(`#bookingTabs .nav-link[href="#${tabName}"]`).click();
+      currentStep = tabName;
+  }
+
+  document.querySelector("#insurance .btn-secondary").addEventListener("click", function () {
+      switchTab("vehicles");
+  });
+
+  bookingTabs.forEach(tab => {
+      tab.addEventListener("click", function (event) {
+          const targetTab = this.getAttribute("href").substring(1);
+          if ((targetTab === "insurance" && currentStep !== "insurance") || 
+              (targetTab === "addition" && currentStep !== "addition") ||
+              (targetTab === "confirmation" && currentStep !== "confirmation")) {
+              event.preventDefault();
+          }
+      });
+  });
+
+  if (window.registerPriceAutoCalc) {
+      window.registerPriceAutoCalc();
+  }
 });

@@ -1,0 +1,91 @@
+.insurance-wrap {
+    font-family: var(--font-family-sans-serif);
+    color: var(--dark);
+  }
+  
+  .insurance-desc-wrap ul,
+  .insurance-item-wrap ul,
+  .insurance-tab-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .insurance-desc-wrap li,
+  .insurance-item-wrap li,
+  .insurance-tab-content li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+  }
+  
+  .tooltip-trigger {
+    cursor: pointer;
+  }
+  
+  .tooltip-wrap {
+    display: none;
+    position: absolute;
+    background: var(--white);
+    border: 1px solid var(--light);
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+  }
+  
+  .insurance-item-wrap {
+    background: var(--white);
+    border: 1px solid var(--light);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .insurance-item-wrap.active {
+    border-color: var(--primary);
+  }
+  
+  .insurance-item-wrap .price {
+    font-weight: bold;
+    color: var(--primary);
+  }
+  
+  .insurance-mobile .nav-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .insurance-mobile .nav-tabs a {
+    padding: 0.5rem 1rem;
+    background: var(--light);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--dark);
+  }
+  
+  .insurance-mobile .nav-tabs a.active {
+    background: var(--primary);
+    color: var(--white);
+  }
+  
+  .insurance-tab-content .bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  .btn-secondary {
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: var(--white);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .btn-secondary.selected {
+    background: var(--success);
+  }
+  

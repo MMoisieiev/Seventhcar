@@ -1,114 +1,205 @@
-/* Container for all car cards */
-.car-list {
-    display: flex;
-    flex-wrap: wrap; /* Allow wrapping to the next row */
-    gap: 1.5rem; /* Space between cards */
-    padding: 1rem;
-    justify-content: center; /* Center the cards horizontally */
-  }
-  
-  /* Individual car card */
+:root {
+  --blue: #007bff;
+  --indigo: #6610f2;
+  --purple: #6f42c1;
+  --pink: #e83e8c;
+  --red: #dc3545;
+  --orange: #fd7e14;
+  --yellow: #ffc107;
+  --green: #28a745;
+  --teal: #20c997;
+  --cyan: #17a2b8;
+  --white: #fff;
+  --gray: #6c757d;
+  --gray-dark: #343a40;
+  --primary: #007bff;
+  --secondary: #6c757d;
+  --success: #28a745;
+  --info: #17a2b8;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --light: #f8f9fa;
+  --dark: #343a40;
+  --breakpoint-xs: 0;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --swiper-theme-color: #007aff;
+  --swiper-navigation-size: 44px;
+}
+
+/* Ensure the container takes full width */
+.container {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+/* Make the tabs take full width */
+.nav.nav-pills.nav-justified {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.nav.nav-pills.nav-justified .nav-item {
+  flex: 1;
+  text-align: center;
+}
+
+/* Ensure the tab content takes full width */
+.tab-content {
+  width: 100%;
+  padding: 1rem;
+}
+
+/* Ensure car list container allows cards to display in a row */
+#carList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+}
+@media (max-width: 1200px) {
   .vehicle-item.car-presentation-box {
-    -webkit-text-size-adjust: 100%;
-    -webkit-tap-highlight-color: transparent;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-    color: var(--dark);
-    font-family: var(--font-family-sans-serif);
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    position: relative;
-    background-color: var(--white);
-    border: 1px solid var(--light);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 300px; /* Adjust the width of each card */
-    width: 100%; /* Ensure responsiveness */
-    flex: 1 1 300px; /* Allow cards to grow and shrink */
+      flex: 1 1 calc(50% - 1rem); /* 2 cards per row */
   }
-  
-  /* Ensure text is black */
-  .vehicle-item.car-presentation-box .text-wrap,
-  .vehicle-item.car-presentation-box .text-wrap h3,
-  .vehicle-item.car-presentation-box .text-wrap p,
-  .vehicle-item.car-presentation-box .features li,
-  .vehicle-item.car-presentation-box .price,
-  .vehicle-item.car-presentation-box .total-price {
-    color: black; /* Force text color to black */
+}
+
+@media (max-width: 768px) {
+  .vehicle-item.car-presentation-box {
+      flex: 1 1 calc(100% - 1rem); /* 1 card per row */
   }
-  
-  /* Image container */
-  .vehicle-item.car-presentation-box .image-container {
-    width: 100%;
-    height: 200px; /* Fixed height for the image container */
-    overflow: hidden; /* Ensure the image doesn't overflow */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .vehicle-item.car-presentation-box .image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Ensure the image covers the container without stretching */
-  }
-  
-  /* Bottom content */
-  .vehicle-item.car-presentation-box .bottom-wrap.content {
-    padding: 1.5rem;
-  }
-  
-  /* Features list */
-  .vehicle-item.car-presentation-box .features {
-    display: flex;
-    gap: 1rem;
-    list-style: none;
-    padding: 0;
-    margin: 0 0 1rem 0;
-  }
-  
-  .vehicle-item.car-presentation-box .features li {
-    font-size: 0.875rem;
-    color: black; /* Ensure features text is black */
-  }
-  
-  /* Price section */
-  .vehicle-item.car-presentation-box .price-wrap {
-    margin-bottom: 1.5rem;
-  }
-  
-  .vehicle-item.car-presentation-box .price {
+}
+
+/* Styling for individual car cards */
+.vehicle-item.car-presentation-box {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  font-family: Poppins, sans-serif;
+  list-style: none;
+  margin: 0;
+  padding: 1rem;
+  box-sizing: border-box;
+  position: relative;
+  background-color: var(--white);
+  border: 1px solid var(--gray);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Ensure content is evenly distributed */
+  align-items: center;
+  width: 100%;
+  max-width: 400px; /* Adjust width */
+  min-width: 200px;
+  height: 500px; /* Allow flexibility */
+  aspect-ratio: 16 / 9; /* Keep it rectangular */
+  flex: 1 1 calc(33.333% - 1rem); /* Ensure responsive sizing */
+}
+  /* Ensure proper spacing and layout for text */
+.vehicle-item.car-presentation-box .text-wrap {
+  padding: 1rem;
+}
+
+ .vehicle-item.car-presentation-box h3 {
     font-size: 1.25rem;
-    font-weight: 700;
-    color: black; /* Ensure price text is black */
-    margin: 0;
-  }
-  
-  .vehicle-item.car-presentation-box .total-price {
-    font-size: 1rem;
-    color: black; /* Ensure total price text is black */
-    margin: 0;
-  }
-  
-  /* Button */
-  .vehicle-item.car-presentation-box .btn-arrow.button {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
     font-weight: 600;
-    color: var(--white);
-    background-color: var(--primary);
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
-  }
+    margin-bottom: 0.5rem;
+}
+  
+
+.vehicle-item.car-presentation-box p {
+  font-size: 1rem;
+  color: var(--gray-dark);
+}
+
+/* Image styling */
+.vehicle-item.car-presentation-box .image-container {
+  width: 100%;
+  height: 170px; /* Reduce height */
+  max-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.vehicle-item.car-presentation-box .image-container img {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+
+.vehicle-item.car-presentation-box .bottom-wrap.content {
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between; /* Distribute content */
+  min-height: 100px; /* Prevent it from collapsing */
+}
+ /* Features list */
+.vehicle-item.car-presentation-box .features {
+  display: flex;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+  
+.vehicle-item.car-presentation-box .features li {
+  font-size: 0.875rem;
+  color: var(--dark);
+}
+.vehicle-item.car-presentation-box .price-wrap {
+  margin-bottom: 1rem;
+}
+
+.vehicle-item.car-presentation-box .price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0;
+}
+  
+.vehicle-item.car-presentation-box .total-price {
+  font-size: 1rem;
+  color: var(--gray-dark);
+  margin: 0;
+}
+
+ 
+/* Book now button */
+.vehicle-item.car-presentation-box .btn-arrow.button {
+  display: inline-block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--white);
+  background-color: var(--primary);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
   
   .vehicle-item.car-presentation-box .btn-arrow.button:hover {
     background-color: var(--blue);
