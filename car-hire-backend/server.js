@@ -66,7 +66,13 @@ app.get('/bookingpage', (req, res) => {
 });
 
 //---------------------------------------------------------------------------------------------------------------------------------------
-
+function formatDate(dateObj) {
+    const yyyy = dateObj.getFullYear();
+    const mm   = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const dd   = String(dateObj.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  
 // Route: Login
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
@@ -408,12 +414,7 @@ app.delete('/api/cars/:plateNumber', (req, res) => {
 
 
 
-function formatDate(dateObj) {
-    const yyyy = dateObj.getFullYear();
-    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const dd = String(dateObj.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-}
+
 
 app.get('/api/availability', (req, res) => {
     const yearParam = parseInt(req.query.year, 10);
@@ -467,6 +468,9 @@ app.get('/api/availability', (req, res) => {
 // GET /api/caravailability/:plateNumber
 // Returns an array of objects, each with { start: "YYYY-MM-DD", end: "YYYY-MM-DD" }
 // for all 'Pending' or 'Approved' reservations on this car.
+
+  
+
 app.get("/api/caravailability/:plateNumber", (req, res) => {
     const plateNumber = req.params.plateNumber;
   
@@ -497,18 +501,20 @@ app.get("/api/caravailability/:plateNumber", (req, res) => {
   });
   
   // Helper: format a MySQL date => "YYYY-MM-DD"
-  function formatDate(dateObj) {
-    const yyyy = dateObj.getFullYear();
-    const mm   = String(dateObj.getMonth() + 1).padStart(2, "0");
-    const dd   = String(dateObj.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  }
-  
 
 
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // Start the server
+module.exports = app;
+
+if (require.main === module) {
+    const port = 3000;
+    app.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
+  }
+
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
