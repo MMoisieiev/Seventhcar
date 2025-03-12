@@ -356,10 +356,6 @@ app.put('/api/cars/:plateNumber', upload.single('carImage'), (req, res) => {
     });
 });
 
-// -------------------------------------------
-// Existing Routes
-// -------------------------------------------
-
 // Route: Fetch All Cars
 app.get('/api/cars', (req, res) => {
     db.query('SELECT * FROM cars', (err, results) => {
@@ -409,12 +405,9 @@ app.delete('/api/cars/:plateNumber', (req, res) => {
 
 
 //-------------------------------------------------------------CALENDAR ---------------------------------------------------------------------------------------------
-// Example of a REAL /api/availability route (server.js)
 
-// GET /api/availability?year=YYYY&month=MM (1..12)
-// In your server.js or routes file (Node + Express + MySQL 8.0+)
 
-// Utility to format JS Date => 'YYYY-MM-DD'
+
 function formatDate(dateObj) {
     const yyyy = dateObj.getFullYear();
     const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -422,7 +415,6 @@ function formatDate(dateObj) {
     return `${yyyy}-${mm}-${dd}`;
 }
 
-// GET /api/availability?year=YYYY&month=MM
 app.get('/api/availability', (req, res) => {
     const yearParam = parseInt(req.query.year, 10);
     const monthParam = parseInt(req.query.month, 10);
@@ -431,21 +423,11 @@ app.get('/api/availability', (req, res) => {
         return res.status(400).json({ error: "Please provide valid 'year' and 'month' (1..12)." });
     }
 
-    // Build the start/end for that month
-    // e.g., if year=2025, month=2 => '2025-02-01' to '2025-02-28/29'
     const startDate = new Date(yearParam, monthParam - 1, 1); // JS months are 0-based
     const endDate = new Date(yearParam, monthParam, 0);     // day=0 => last day of that month
     const startStr = formatDate(startDate); // 'YYYY-MM-DD'
     const endStr = formatDate(endDate);
 
-    // Use one query:
-    // 1) `allDays` CTE produces each date from startStr..endStr
-    // 2) `totalCars` CTE fetches the total # of cars from the 'cars' table
-    // 3) We CROSS JOIN totalCars => we have that total for every row
-    // 4) We LEFT JOIN reservations => daily usedCars
-    // 5) freeCars = totalCars - COUNT(r.id)
-    // 6) GROUP BY each day => daily results
-    // 7) ORDER BY day
 
     const sql = `
       WITH RECURSIVE allDays (day) AS (
@@ -471,15 +453,13 @@ app.get('/api/availability', (req, res) => {
       ORDER BY allDays.day
     `;
 
-    // We'll pass [startStr, endStr] to fill in the placeholders
     db.query(sql, [startStr, endStr], (err, results) => {
         if (err) {
             console.error("Error in availability query:", err);
             return res.status(500).json({ error: 'Database error in availability query.' });
         }
 
-        // MySQL returns rows like: [{ date: '2025-02-01', freeCars: 5 }, ...]
-        // Send them directly in JSON
+        
         res.json(results);
     });
 });
@@ -503,8 +483,7 @@ app.get("/api/caravailability/:plateNumber", (req, res) => {
         return res.status(500).json({ error: "Server error" });
       }
   
-      // Each row is { start_date: <Date>, end_date: <Date> }
-      // We'll format them as "YYYY-MM-DD" strings in an array of { start, end }
+      
       const bookedRanges = results.map(row => {
         return {
           start: formatDate(row.start_date),
@@ -519,8 +498,6 @@ app.get("/api/caravailability/:plateNumber", (req, res) => {
   
   // Helper: format a MySQL date => "YYYY-MM-DD"
   function formatDate(dateObj) {
-    // If your columns are DATE types, row.start_date is probably a JS Date already
-    // (with time set to midnight). If you want a string: 
     const yyyy = dateObj.getFullYear();
     const mm   = String(dateObj.getMonth() + 1).padStart(2, "0");
     const dd   = String(dateObj.getDate()).padStart(2, "0");
