@@ -64,6 +64,10 @@ app.get('/bookingpage', (req, res) => {
     // index.html is your home page
     res.sendFile(path.join(__dirname, 'public', 'pages', 'bookingpage.html'));
 });
+app.get('/extras', (req, res) => {
+    // index.html is your home page
+    res.sendFile(path.join(__dirname, 'public', 'pages', 'extras.html'));
+});
 
 //---------------------------------------------------------------------------------------------------------------------------------------
 function formatDate(dateObj) {
@@ -504,7 +508,107 @@ app.get("/api/caravailability/:plateNumber", (req, res) => {
 
 
 
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------EXTRAS ------------------------------------------------------------------------------------------------------------
+
+
+// GET ALL EXTRAS
+app.get('/api/extras', (req, res) => {
+    db.query('SELECT * FROM extras', (err, results) => {
+        if (err) {
+            console.error('Database error (fetching extras):', err);
+            return res.status(500).json({ error: 'Server error' });
+        }
+        // Return array of extras
+        res.json(results);
+    });
+});
+
+// GET ONE EXTRA BY ID
+app.get('/api/extras/:id', (req, res) => {
+    const { id } = req.params;
+    db.query('SELECT * FROM extras WHERE id = ?', [id], (err, results) => {
+        if (err) {
+            console.error('Database error (fetching extra by id):', err);
+            return res.status(500).json({ error: 'Server error' });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Extra not found' });
+        }
+        res.json(results[0]);
+    });
+});
+
+// CREATE A NEW EXTRA
+app.post('/api/extras', (req, res) => {
+    const { name, price, description } = req.body;
+
+    // Validate required fields
+    if (!name || price == null) {
+        return res.status(400).json({ error: 'Name and price are required' });
+    }
+
+    db.query(
+        'INSERT INTO extras (name, price, description) VALUES (?, ?, ?)',
+        [name, price, description || null],
+        (err, result) => {
+            if (err) {
+                console.error('Database error (creating extra):', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+            // Return the newly created row's ID
+            res.status(201).json({
+                id: result.insertId,
+                name,
+                price,
+                description
+            });
+        }
+    );
+});
+
+// UPDATE AN EXISTING EXTRA
+app.put('/api/extras/:id', (req, res) => {
+    const { id } = req.params;
+    const { name, price, description } = req.body;
+
+    if (!name || price == null) {
+        return res.status(400).json({ error: 'Name and price are required' });
+    }
+
+    db.query(
+        'UPDATE extras SET name = ?, price = ?, description = ? WHERE id = ?',
+        [name, price, description || null, id],
+        (err, result) => {
+            if (err) {
+                console.error('Database error (updating extra):', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: 'Extra not found' });
+            }
+            res.json({ id, name, price, description });
+        }
+    );
+});
+
+// DELETE AN EXTRA
+app.delete('/api/extras/:id', (req, res) => {
+    const { id } = req.params;
+    db.query('DELETE FROM extras WHERE id = ?', [id], (err, result) => {
+        if (err) {
+            console.error('Database error (deleting extra):', err);
+            return res.status(500).json({ error: 'Server error' });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Extra not found' });
+        }
+        res.json({ message: 'Extra deleted successfully' });
+    });
+});
+
+
+
+
 // Start the server
 // module.exports = app;
 

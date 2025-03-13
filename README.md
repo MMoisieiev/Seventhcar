@@ -60,7 +60,7 @@ Node.js (version 14+ recommended)
 MySQL or Google Cloud SQL
 npm or yarn
 
-git clone https://github.com/MMoisieiev/Seventhcar
+git clone https://github.com/MMoisieiev/Seventhcar.git
 
 cd car-hire-backend
 

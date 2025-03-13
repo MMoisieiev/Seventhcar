@@ -12,6 +12,9 @@
       <a class="nav-link font-weight-bold" href="reservations" style="font-size: 1.1rem;">Reservations</a>
     </li>
     <li class="nav-item">
+      <a class="nav-link font-weight-bold" id="extrasLink" href="extras" style="font-size: 1.1rem;">Extras</a>
+    </li>
+    <li class="nav-item">
       <a class="nav-link font-weight-bold" id="logoutLink" href="#" style="font-size: 1.1rem;">Logout</a>
     </li>
   `;
