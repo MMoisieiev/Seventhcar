@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 7. Helper: fetchAvailability from server (real API)
   async function fetchAvailability(year, month) {
     // month is 1..12
-    const response = await fetch(`/api/availability?year=${year}&month=${month}`);
+    const response = await fetch(`/api/reservations/availability?year=${year}&month=${month}`);
     if (!response.ok) {
       throw new Error("Failed to fetch availability");
     }

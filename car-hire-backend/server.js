@@ -74,6 +74,8 @@ app.get('/extras',isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pages', 'extras.html'));
 });
 
+
+
 //---------------------------------------------------------------------------------------------------------------------------------------
 function formatDate(dateObj) {
     const yyyy = dateObj.getFullYear();
@@ -149,8 +151,10 @@ app.use("/api/reservations", reservationsRoutes(db));
 app.use("/api/extras", extrasRoutes(db));
 
 
-
-
+app.get('/api/reservations/test', (req, res) => {
+    res.json({success: true, message: "Test route working"});
+  });
+  
 
   // Helper: format a MySQL date => "YYYY-MM-DD"
 

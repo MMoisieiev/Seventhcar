@@ -13,6 +13,10 @@
                 <p><strong>End Date:</strong> <span id="modalEndDate"></span></p>
                 <p><strong>Price:</strong> €<span id="modalPrice"></span></p>
                 <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+                <label>Selected Extras:</label>
+<select id="extrasDropdown" class="form-control">
+  <option>Loading extras...</option>
+</select>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-warning" id="editReservation">Edit</button>
@@ -26,7 +30,7 @@
 
 <!-- Edit Reservation Modal -->
 <div class="modal" id="editReservationModal">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Edit Reservation</h5>
@@ -34,7 +38,7 @@
             </div>
             <div class="modal-body">
                 <form id="editReservationForm">
-                    <input type="hidden" id="editReservationId"> <!-- Hidden ID field -->
+                    <input type="hidden" id="editReservationId">
                     <div class="form-group">
                         <label>Customer Name</label>
                         <input type="text" class="form-control" id="editCustomerName" required>
@@ -66,7 +70,7 @@
                     <div class="form-group">
                         <label>End Time</label>
                         <input type="time" class="form-control" id="editEndTime" required>
-                    </div>                    
+                    </div>  
                     <div class="form-group">
                         <label>Total Price (€)</label>
                         <input type="number" class="form-control" id="editTotalPrice" required>
@@ -80,6 +84,15 @@
                             <option value="Cancelled">Cancelled</option>
                         </select>
                     </div>
+
+                    <!-- Add this missing div clearly -->
+                    <div class="form-group">
+                        <label>Extras</label>
+                        <div id="extrasList">
+                            <!-- Extras dynamically loaded here -->
+                        </div>
+                    </div>
+
                 </form>
             </div>
             <div class="modal-footer">
