@@ -89,18 +89,9 @@ document.addEventListener("DOMContentLoaded", function () {
               <label class="form-check-label" for="extra-${extra.id}">
                 ${extra.name} (€${extra.price}/day)
               </label>
-              <div class="ml-4 d-inline-block">
-                Days:
-                <input type="number"
-                       min="1"
-                       value="1"
-                       class="form-control form-control-sm d-inline-block"
-                       style="width: 60px;"
-                       id="extra-days-${extra.id}">
-                <span data-price="${extra.price}"
-                      id="extra-price-${extra.id}"
-                      hidden></span>
-              </div>
+              <span data-price="${extra.price}"
+                    id="extra-price-${extra.id}"
+                    hidden></span>
             </div>
           `).join('');
   
@@ -143,21 +134,18 @@ document.addEventListener("DOMContentLoaded", function () {
               .catch(err => console.error("Error loading reservation for edit:", err));
           }
   
-          // 3) Wire up auto-calc on plate/date/extras inputs
-          window.registerPriceAutoCalc();
-          document.querySelectorAll('.extra-checkbox').forEach(chk =>
-            chk.addEventListener('change', window.autoCalculatePrice)
-          );
-          document.querySelectorAll('[id^="extra-days-"]').forEach(input =>
-            input.addEventListener('input', window.autoCalculatePrice)
-          );
-  
-          // 4) Show the Edit modal
-          $("#reservationModal").modal("hide");
-          $("#editReservationModal").modal("show");
-        })
-        .catch(err => console.error("Error loading extras list:", err));
-    }
+              // 3) Wire up auto-calc on plate/date/extras inputs
+              window.registerPriceAutoCalc();
+              document.querySelectorAll('.extra-checkbox').forEach(chk =>
+                chk.addEventListener('change', window.autoCalculatePrice)
+              );
+      
+              // 4) Show the Edit modal
+              $("#reservationModal").modal("hide");
+              $("#editReservationModal").modal("show");
+            })
+            .catch(err => console.error("Error loading extras list:", err));
+        }
   
     
   
@@ -166,14 +154,19 @@ document.addEventListener("DOMContentLoaded", function () {
     // -------------------------------------------------------------------
     function saveReservationChanges() {
       const reservationId = document.getElementById("editReservationId").value.trim();
-    
-      // Collect selected extras
+      
+      // Calculate rental duration
+      const start = new Date(document.getElementById("editStartDate").value);
+      const end   = new Date(document.getElementById("editEndDate").value);
+      const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+      
+      // Collect selected extras (default to full duration)
       const extras = Array.from(document.querySelectorAll('.extra-checkbox:checked')).map(chk => ({
         extra_id: parseInt(chk.value, 10),
-        days: parseInt(document.getElementById(`extra-days-${chk.value}`).value, 10),
+        days: diffDays,
         price_at_booking: parseFloat(document.getElementById(`extra-price-${chk.value}`).dataset.price)
       }));
-    
+      
       const updatedReservation = {
         customer_name: document.getElementById("editCustomerName").value,
         customer_email: document.getElementById("editCustomerEmail").value,
@@ -185,12 +178,12 @@ document.addEventListener("DOMContentLoaded", function () {
         end_time: document.getElementById("editEndTime").value,
         total_price: document.getElementById("editTotalPrice").value,
         status: document.getElementById("editReservationStatus").value,
-        extras // Include the extras array
+        extras // full-duration extras by default
       };
-    
+      
       const method = reservationId ? "PUT" : "POST";
       const url = reservationId ? `/api/reservations/${reservationId}` : "/api/reservations";
-    
+      
       fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
@@ -203,6 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .catch(error => console.error("Error saving reservation:", error));
     }
+  
     
   
     // -------------------------------------------------------------------
