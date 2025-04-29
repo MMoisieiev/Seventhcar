@@ -3,7 +3,7 @@
         <span class="close" id="closeModalBtn">&times;</span>
         <h4 id="modalTitle">Add/Edit Car</h4>
         
-        <form id="carForm">
+        <form id="carForm" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="carName">Car Name</label>
                 <input type="text" class="form-control" id="carName" name="carName" placeholder="Enter car name" required>
@@ -32,6 +32,16 @@
                 <label for="price">Price</label>
                 <input type="number" class="form-control" id="price" name="price" placeholder="Enter price" required>
             </div>
+              <div class="form-group">
+                    <label for="carImage">Car Picture</label>
+                    <input 
+                      type="file" 
+                     id="carImage" 
+                      name="carImage" 
+                      accept="image/*" 
+                      class="form-control-file"
+                    >
+                  </div>
 
             <!-- Save Car Button -->
             <button type="button" class="btn btn-primary" id="saveCarBtn">Save</button>

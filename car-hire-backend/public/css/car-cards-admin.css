@@ -27,6 +27,10 @@
     border-radius: 8px;
     margin-bottom: 10px;
 }
+.car-name {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
 
 .car-card .price {
     font-size: 1.2rem;

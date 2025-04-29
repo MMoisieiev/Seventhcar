@@ -50,12 +50,13 @@
         : '/assets/placeholder.jpg';
     
       carCard.innerHTML = `
+        <div class="car-name">Car Name: ${car.car_name || '—'}</div>
         <img src="${carImage}" alt="Car Image">
         <div class="plate-number">Plate Number: ${car.plate_number}</div>
         <div class="price">Price: €${car.price}</div>
         <button class="btn btn-primary edit-btn" data-plate="${car.plate_number}">
           Edit
-        </button>
+       </button>
       `;
     
       colDiv.appendChild(carCard);
