@@ -1,0 +1,73 @@
+<!-- partials/calendar.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Availability Calendar</title>
+  <!-- FullCalendar CSS -->
+  <link href="https://unpkg.com/@fullcalendar/core@6.1.8/main.min.css" rel="stylesheet">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #calendar { max-width: 600px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <h2 id="calendarTitle">Car Availability</h2>
+  <div id="calendar"></div>
+
+  <!-- FullCalendar JS -->
+  <script src="https://unpkg.com/@fullcalendar/core@6.1.8/main.min.js"></script>
+  <script src="https://unpkg.com/@fullcalendar/daygrid@6.1.8/main.global.min.js"></script>
+  <script>
+    // Parse plateNumber from URL
+    function getPlateNumber() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('plateNumber');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const plate = getPlateNumber();
+      document.getElementById('calendarTitle').textContent = `Availability for ${plate}`;
+
+      const calendarEl = document.getElementById('calendar');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: { center: 'prev,title,next' },
+        events: function(fetchInfo, successCallback) {
+          fetch(`/api/reservations?plateNumber=${plate}`)
+            .then(res => res.json())
+            .then(data => {
+              // map reservations to background events (red)
+              const events = data.map(r => ({
+                start: r.pickupDate,
+                end: r.returnDate,
+                display: 'background',
+                backgroundColor: '#f8d7da', // light red
+              }));
+
+              // mark all days in view as green by default
+              const start = fetchInfo.start;
+              const end = fetchInfo.end;
+              const allDays = [];
+              let curr = new Date(start);
+              while (curr < end) {
+                allDays.push({
+                  start: curr.toISOString().split('T')[0],
+                  display: 'background',
+                  backgroundColor: '#d4edda', // light green
+                });
+                curr.setDate(curr.getDate() + 1);
+              }
+
+              successCallback([...allDays, ...events]);
+            });
+        }
+      });
+
+      calendar.render();
+    });
+  </script>
+</body>
+</html>
