@@ -6,7 +6,7 @@ const path = require('path');
 const multer = require('multer'); // For file uploads
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
 // Middleware
 app.use(express.json());
@@ -144,6 +144,10 @@ const carsRoutes = require("./routes/cars");
 const reservationsRoutes = require("./routes/reservations");
 const extrasRoutes = require("./routes/extras");
 
+const cors = require('cors');
+app.use(cors({
+  origin: 'http://localhost:3000'
+}));
 
 //-------------------------------------------------------------CALENDAR ---------------------------------------------------------------------------------------------
 app.use("/api/cars", carsRoutes(db, upload));
