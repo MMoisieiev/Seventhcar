@@ -6,3 +6,4 @@ frontend/car-rent/.next/
 **/.next/
 .env.local
 *.log
+.env

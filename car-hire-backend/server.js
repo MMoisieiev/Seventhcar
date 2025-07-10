@@ -23,11 +23,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Serve uploaded images
 
 // Database connection
+require('dotenv').config();
 const db = mysql.createConnection({
     host: 'db-mysql-fra1-06464-do-user-23578538-0.l.db.ondigitalocean.com',
     port: 25060,
     user: 'doadmin',
-    password: 'AVNS_PSiZ6_sCmXx6Tg0AvY4',
+    password: process.env.AIVEN_SERVICE_PASSWORD,
     database: 'SeventhCarHire',
     ssl: {
       rejectUnauthorized: false
