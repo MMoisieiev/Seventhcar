@@ -1,5 +1,5 @@
 const express = require('express');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const path = require('path');
@@ -24,19 +24,23 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Serve u
 
 // Database connection
 const db = mysql.createConnection({
-    host: '34.35.30.206',
-    user: 'admin',
-    password: 'admin',
-    database: 'SeventhCarHire'
-});
-
-db.connect((err) => {
-    if (err) {
-        console.error('Error connecting to the database:', err);
-        return;
+    host: 'db-mysql-fra1-06464-do-user-23578538-0.l.db.ondigitalocean.com',
+    port: 25060,
+    user: 'doadmin',
+    password: 'AVNS_PSiZ6_sCmXx6Tg0AvY4',
+    database: 'SeventhCarHire',
+    ssl: {
+      rejectUnauthorized: false
     }
-    console.log('Connected to the database');
-});
+  });
+  
+  db.connect((err) => {
+    if (err) {
+      console.error('Error connecting to the database:', err);
+      return;
+    }
+    console.log('Connected to the database!');
+  });
 //------------------------------------------------------------------------ROUTES-------------------------------------------------------
 // 1) Home Page (root path)
 app.get('/', (req, res) => {

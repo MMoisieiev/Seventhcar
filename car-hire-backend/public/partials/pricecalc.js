@@ -1,5 +1,6 @@
 // pricecalc.js
 
+
 let leftoverAlertShown = false;
 
 function registerPriceAutoCalc() {
@@ -20,6 +21,7 @@ function registerPriceAutoCalc() {
   // and do one initial calculation on modal open
   autoCalculatePrice();
 }
+
 async function autoCalculatePrice() {
   const priceField    = document.getElementById("editTotalPrice");
   const plateNumber   = document.getElementById("editPlateNumber").value.trim();
@@ -27,7 +29,9 @@ async function autoCalculatePrice() {
   const startTimeStr  = document.getElementById("editStartTime").value;
   const endDateStr    = document.getElementById("editEndDate").value;
   const endTimeStr    = document.getElementById("editEndTime").value;
-  const reservationId = document.getElementById("editReservationId").value;
+
+  const reservationIdEl = document.getElementById("editReservationId");
+  const reservationId = reservationIdEl ? reservationIdEl.value : null;
 
   if (!plateNumber || !startDateStr || !startTimeStr || !endDateStr || !endTimeStr) {
     return;
@@ -37,13 +41,11 @@ async function autoCalculatePrice() {
   const endDT   = new Date(`${endDateStr}T${endTimeStr}`);
   if (endDT <= startDT) return;
 
-  // skip conflict against itself
   if (await checkIfDatesConflict(plateNumber, startDT, endDT, reservationId)) {
     alert("These dates/times overlap an existing booking for this car.");
     return;
   }
 
-  // fetch daily rate
   let dailyRate = 0;
   try {
     const res = await fetch(`/api/cars/${plateNumber}`);
@@ -52,10 +54,20 @@ async function autoCalculatePrice() {
     console.warn("Failed to fetch car rate:", e);
   }
 
-  const diffHrs  = (endDT - startDT) / 36e5;
-  const dayCount = Math.ceil(diffHrs / 24);
+  // Corrected inclusive day calculation:
+  const dayCount = Math.ceil((endDT - startDT) / (1000 * 60 * 60 * 24)) + 1;
 
-  // compute extras
+  // Multiplier logic (unchanged)
+  let multiplier = 1;
+  if (dayCount === 1) multiplier = 1.5;
+  else if (dayCount > 1 && dayCount < 4) multiplier = 1.25;
+  else if (dayCount >= 4 && dayCount < 7) multiplier = 1.11;
+  else if (dayCount >= 7 && dayCount < 11) multiplier = 1.0;
+  else if (dayCount >= 11 && dayCount < 15) multiplier = 0.9;
+  else if (dayCount >= 15 && dayCount < 22) multiplier = 0.8;
+  else if (dayCount >= 22) multiplier = 0.7;
+
+  // Compute extras (unchanged)
   let extrasTotal = 0;
   document.querySelectorAll(".extra-checkbox:checked").forEach(chk => {
     const perDayCost = Number(
@@ -64,21 +76,24 @@ async function autoCalculatePrice() {
     extrasTotal += perDayCost * dayCount;
   });
 
-  priceField.value = (dayCount * dailyRate + extrasTotal).toFixed(2);
+  // Final corrected price calculation
+  const carPrice = dayCount * dailyRate * multiplier;
+  priceField.value = (carPrice + extrasTotal).toFixed(2);
 }
+
 
 
 async function checkIfDatesConflict(plateNumber, startDT, endDT, selfId = null) {
   try {
-    // fetch all reservations for this plate
     const res = await fetch(`/api/reservations?plate_number=${plateNumber}`);
     if (!res.ok) return false;
     const list = await res.json();
+
     return list.some(r => {
-      if (String(r.id) === String(selfId)) return false;
+      if (selfId && r.id == selfId) return false;
       const rStart = new Date(`${r.start_date}T${r.start_time}`);
       const rEnd   = new Date(`${r.end_date}T${r.end_time}`);
-      return startDT <= rEnd && rStart <= endDT;
+      return startDT < rEnd && rStart < endDT;
     });
   } catch (e) {
     console.warn("Conflict check failed:", e);

@@ -69,84 +69,106 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => console.error("Error fetching reservation details:", error));
     }
+     // -------------------------------------------------------------------
+    // Plate Number dropdown list
+    // -------------------------------------------------------------------
     
-  
+  function populatePlateNumberDropdown(selectedPlate = '') {
+  fetch('/api/cars')
+    .then(res => res.json())
+    .then(cars => {
+      const dropdown = document.getElementById('editPlateNumber');
+      dropdown.innerHTML = '<option value="">Select a plate number...</option>';
+
+      cars.forEach(car => {
+        const option = document.createElement('option');
+        option.value = car.plate_number;
+        option.textContent = car.plate_number;
+
+        if (car.plate_number === selectedPlate) {
+          option.selected = true;
+        }
+
+        dropdown.appendChild(option);
+      });
+    })
+    .catch(err => {
+      console.error('Error fetching plate numbers:', err);
+      document.getElementById('editPlateNumber').innerHTML =
+        '<option value="">Error loading plate numbers</option>';
+    });
+}
+
     // -------------------------------------------------------------------
     // 3) Open "Edit Reservation" Modal (reused for NEW and EDIT)
     // -------------------------------------------------------------------
     function openEditReservationModal(reservationId) {
-      // 1) Load all available extras into the form
-      fetch("/api/extras")
-        .then(res => res.json())
-        .then(allExtras => {
-          const container = document.getElementById('extrasList');
-          container.innerHTML = allExtras.map(extra => `
-            <div class="form-check mb-2">
-              <input type="checkbox"
-                     class="form-check-input extra-checkbox"
-                     value="${extra.id}"
-                     id="extra-${extra.id}">
-              <label class="form-check-label" for="extra-${extra.id}">
-                ${extra.name} (€${extra.price}/day)
-              </label>
-              <span data-price="${extra.price}"
-                    id="extra-price-${extra.id}"
-                    hidden></span>
-            </div>
-          `).join('');
-  
-          // 2a) If creating new, reset core form
-          if (!reservationId) {
-            document.getElementById("editReservationForm").reset();
-  
-          // 2b) If editing, load existing reservation + its extras
-          } else {
-            fetch(`/api/reservations/${reservationId}`)
+  fetch("/api/extras")
+    .then(res => res.json())
+    .then(allExtras => {
+      const container = document.getElementById('extrasList');
+      container.innerHTML = allExtras.map(extra => `
+        <div class="form-check mb-2">
+          <input type="checkbox"
+                 class="form-check-input extra-checkbox"
+                 value="${extra.id}"
+                 id="extra-${extra.id}">
+          <label class="form-check-label" for="extra-${extra.id}">
+            ${extra.name} (€${extra.price}/day)
+          </label>
+          <span data-price="${extra.price}"
+                id="extra-price-${extra.id}"
+                hidden></span>
+        </div>
+      `).join('');
+
+      // Populate the plate numbers
+      if (!reservationId) {
+        // Creating NEW reservation (no selection)
+        document.getElementById("editReservationForm").reset();
+        populatePlateNumberDropdown();  // <-- No pre-selection
+      } else {
+        // EDITING existing reservation
+        fetch(`/api/reservations/${reservationId}`)
+          .then(res => res.json())
+          .then(reservation => {
+            document.getElementById("editReservationId").value = reservation.id;
+            document.getElementById("editCustomerName").value = reservation.customer_name;
+            document.getElementById("editCustomerPhone").value = reservation.customer_phone;
+            document.getElementById("editStartDate").value = reservation.start_date;
+            document.getElementById("editStartTime").value = reservation.start_time;
+            document.getElementById("editEndDate").value = reservation.end_date;
+            document.getElementById("editEndTime").value = reservation.end_time;
+            document.getElementById("editTotalPrice").value = reservation.total_price;
+            document.getElementById("editReservationStatus").value = reservation.status;
+
+            populatePlateNumberDropdown(reservation.plate_number);  // <-- Preselect existing plate
+
+            fetch(`/api/reservations/${reservationId}/extras`)
               .then(res => res.json())
-              .then(reservation => {
-                // Populate core fields
-                document.getElementById("editReservationId").value     = reservation.id;
-                document.getElementById("editCustomerName").value      = reservation.customer_name;
-                document.getElementById("editCustomerEmail").value     = reservation.customer_email;
-                document.getElementById("editCustomerPhone").value     = reservation.customer_phone;
-                document.getElementById("editPlateNumber").value       = reservation.plate_number;
-                document.getElementById("editStartDate").value         = reservation.start_date;
-                document.getElementById("editStartTime").value         = reservation.start_time;
-                document.getElementById("editEndDate").value           = reservation.end_date;
-                document.getElementById("editEndTime").value           = reservation.end_time;
-                document.getElementById("editTotalPrice").value        = reservation.total_price;
-                document.getElementById("editReservationStatus").value = reservation.status;
-  
-                // Pre-select this reservation’s extras
-                fetch(`/api/reservations/${reservationId}/extras`)
-                  .then(res => res.json())
-                  .then(selectedExtras => {
-                    selectedExtras.forEach(extra => {
-                      const chk   = document.getElementById(`extra-${extra.extra_id}`);
-                      const days  = document.getElementById(`extra-days-${extra.extra_id}`);
-                      if (chk && days) {
-                        chk.checked = true;
-                        days.value  = extra.days;
-                      }
-                    });
-                  });
-              })
-              .catch(err => console.error("Error loading reservation for edit:", err));
-          }
-  
-              // 3) Wire up auto-calc on plate/date/extras inputs
-              window.registerPriceAutoCalc();
-              document.querySelectorAll('.extra-checkbox').forEach(chk =>
-                chk.addEventListener('change', window.autoCalculatePrice)
-              );
-      
-              // 4) Show the Edit modal
-              $("#reservationModal").modal("hide");
-              $("#editReservationModal").modal("show");
-            })
-            .catch(err => console.error("Error loading extras list:", err));
-        }
-  
+              .then(selectedExtras => {
+                selectedExtras.forEach(extra => {
+                  const chk = document.getElementById(`extra-${extra.extra_id}`);
+                  if (chk) chk.checked = true;
+                });
+              });
+          })
+          .catch(err => console.error("Error loading reservation for edit:", err));
+      }
+
+      setTimeout(() => {
+  window.registerPriceAutoCalc();
+}, 50);
+      document.querySelectorAll('.extra-checkbox').forEach(chk =>
+        chk.addEventListener('change', window.autoCalculatePrice)
+      );
+
+      $("#reservationModal").modal("hide");
+      $("#editReservationModal").modal("show");
+    })
+    .catch(err => console.error("Error loading extras list:", err));
+}
+
     
   
     // -------------------------------------------------------------------
@@ -169,7 +191,6 @@ document.addEventListener("DOMContentLoaded", function () {
       
       const updatedReservation = {
         customer_name: document.getElementById("editCustomerName").value,
-        customer_email: document.getElementById("editCustomerEmail").value,
         customer_phone: document.getElementById("editCustomerPhone").value,
         plate_number: document.getElementById("editPlateNumber").value,
         start_date: document.getElementById("editStartDate").value,
@@ -208,7 +229,6 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(reservation => {
           const updatedReservation = {
             customer_name:  reservation.customer_name,
-            customer_email: reservation.customer_email,
             customer_phone: reservation.customer_phone,
             plate_number:   reservation.plate_number,
             start_date:     reservation.start_date,
@@ -237,6 +257,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // -------------------------------------------------------------------
     // 6) Init
     // -------------------------------------------------------------------
+    
     initializeModalEventListeners();
 
   // Expose globally

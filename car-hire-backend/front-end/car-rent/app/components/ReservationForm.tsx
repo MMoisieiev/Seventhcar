@@ -4,14 +4,17 @@
 import type React from "react"
 
 import { useState } from "react"
-import { ChevronDown, Edit } from "lucide-react"
+import { ChevronDown, DropletOff, Edit } from "lucide-react"
 import Image from "next/image"
 import locationIcon from "@/public/Assets/ico_location.svg"
-import calendarIcon from "@/public/Assets/ico_date.svg"
+import calendarIcon1 from "@/public/Assets/ico_date1.svg"
+import calendarIcon2 from "@/public/Assets/ico_date2.svg"
+import ageDr from "@/public/Assets/age_driver.svg"
 import editIcon from "@/public/Assets/ico_edit.svg"
 
 const ReservationForm = () => {
   const [island, setIsland] = useState("")
+  const [dropOff, setDropOff] = useState("")
   const [pickupDate, setPickupDate] = useState("10/05/2025")
   const [pickupTime, setPickupTime] = useState("08:00")
   const [returnDate, setReturnDate] = useState("16/05/2025")
@@ -43,7 +46,7 @@ const ReservationForm = () => {
       onClick={handleBackgroundClick}
     >
       <div className="max-w-4xl mx-auto text-center">
-      <h3 className="md:text-[50px] text-[28px] text-white font-bold md:mt-20 mb-24 md:mb-0">Drive Your Dream on Mahé & Praslin</h3>
+      <h3 className="md:text-[50px] text-[28px] text-white font-bold md:mt-20 mb-24 md:mb-0">Rent A Car in Seychelles</h3>
       </div>
       <div
         className="max-w-7xl w-full mx-auto bg-white py-4 md:py-8 md:px-10 px-6 rounded-t-xl rounded-br-xl md:rounded-br-none backdrop-blur-md bg-opacity-90 flex flex-col"
@@ -51,30 +54,59 @@ const ReservationForm = () => {
       >
         {/* Island Selection */}
         <div className="mb-6">
-          <label className="block text-sm font-bold mb-1">Island</label>
-          <div className="relative w-full md:w-[450px]">
-            <select
-              value={island}
-              onChange={(e) => setIsland(e.target.value)}
-              className="w-full h-[65px] p-3 px-6 border border-[#1c7fec] rounded-md focus:outline-none appearance-none bg-[#f8f8f8]"
-            >
-              <option value="" disabled>
-                Select location...
-              </option>
-              <option value="Island 1">Island 1</option>
-              <option value="Island 2">Island 2</option>
-              <option value="Island 3">Island 3</option>
-            </select>
-            <div className="absolute inset-y-0 -left-4 flex items-center pointer-events-none">
-              <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center">
-                <Image src={locationIcon} alt="location icon" />
-              </div>
-            </div>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-              <ChevronDown className="h-4 w-4 text-[#1c7fec]" />
-            </div>
-          </div>
+  <label className="block text-sm font-bold mb-1">Island</label>
+
+  <div className="flex flex-col md:flex-row md:gap-4">
+    {/* Pickup location */}
+    <div className="relative w-full md:w-1/2">
+      <select
+        value={island}
+        onChange={(e) => setIsland(e.target.value)}
+        className="w-full h-[65px] p-3 px-6 border border-[#1c7fec] rounded-md focus:outline-none appearance-none bg-[#f8f8f8]"
+      >
+        <option value="" disabled>
+          Select location...
+        </option>
+        <option value="Island 1">Mahe Airport</option>
+        <option value="Island 2">Cat Coco's Jetty</option>
+        <option value="Island 3">Other +25 Euro</option>
+      </select>
+      <div className="absolute inset-y-0 -left-4 flex items-center pointer-events-none">
+        <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center">
+          <Image src={locationIcon} alt="location icon" />
         </div>
+      </div>
+      <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+        <ChevronDown className="h-4 w-4 text-[#1c7fec]" />
+      </div>
+    </div>
+
+    {/* Drop-off location */}
+    <div className="relative w-full md:w-1/2 mt-4 md:mt-0">
+      <select
+        value={dropOff}
+        onChange={(e) => setDropOff(e.target.value)}
+        className="w-full h-[65px] p-3 px-6 border border-[#1c7fec] rounded-md focus:outline-none appearance-none bg-[#f8f8f8]"
+      >
+        <option value="" disabled>
+          Select location...
+        </option>
+        <option value="Island 1">Mahe Airport</option>
+        <option value="Island 2">Cat Coco's Jetty</option>
+        <option value="Island 3">Other +25 Euro</option>
+      </select>
+      <div className="absolute inset-y-0 -left-4 flex items-center pointer-events-none">
+        <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center">
+          <Image src={locationIcon} alt="location icon" />
+        </div>
+      </div>
+      <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+        <ChevronDown className="h-4 w-4 text-[#1c7fec]" />
+      </div>
+    </div>
+  </div>
+</div>
+
 
         {/* Main Form Row */}
         <div className="flex flex-col md:flex-row md:items-end gap-4 md:mb-6">
@@ -91,7 +123,7 @@ const ReservationForm = () => {
                 />
                 <div className="absolute inset-y-0 -left-4 flex items-center pointer-events-none">
               <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center">
-              <Image src={calendarIcon} alt="calendar icon" />
+              <Image src={calendarIcon1} alt="calendar icon" />
               </div>
             </div>
               </div>
@@ -122,7 +154,7 @@ const ReservationForm = () => {
                 />
                 <div className="absolute inset-y-0 -left-4 flex items-center pointer-events-none">
               <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center">
-              <Image src={calendarIcon} alt="calendar icon" />
+              <Image src={calendarIcon2} alt="calendar icon" />
               </div>
             </div>
               </div>
@@ -158,7 +190,7 @@ const ReservationForm = () => {
               </select>
               <div className="absolute inset-y-0 -left-4 flex items-center pointer-events-none">
               <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center">
-              <Image src={calendarIcon} alt="calendar icon" />
+              <Image src={ageDr} alt="calendar icon" />
               </div>
             </div>
               <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
@@ -186,11 +218,7 @@ const ReservationForm = () => {
         {/* Bottom Navigation */}
         <div className="max-w-7xl mx-auto w-full text-[13px]">
         <div className="flex justify-between items-center w-full">
-          <div className="flex">
-            <div className="bg-white px-4 py-2 rounded-b-2xl cursor-pointer">Car rental</div>
-            <div className="bg-gradient-to-r from-[#1cb4ec] to-[#1c7fec] rounded-b-2xl text-white px-4 py-2 cursor-pointer">Transfers</div>
-            <div className="bg-gradient-to-r from-[#1cb4ec] to-[#1c7fec] rounded-b-2xl text-white px-4 py-2 cursor-pointer">Tours</div>
-          </div>
+         
           <div className="bg-white px-4 py-2 rounded-b-2xl md:flex items-center gap-2 cursor-pointer hidden">
             <Image src={editIcon} alt="edit icon" />
             <span>Edit reservation</span>

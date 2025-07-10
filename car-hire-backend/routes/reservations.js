@@ -63,31 +63,37 @@ router.get('/availability', (req, res) => {
 
   // GET /api/reservations
   router.get("/", (req, res) => {
-    const { status } = req.query;
-    let query = "SELECT * FROM reservations";
-    const queryParams = [];
+  const { status, plate_number } = req.query;
+  let query = "SELECT * FROM reservations";
+  const conditions = [];
+  const queryParams = [];
 
-    if (status) {
-      query += " WHERE status = ?";
-      queryParams.push(status);
+  if (status) {
+    conditions.push("status = ?");
+    queryParams.push(status);
+  }
+
+  if (plate_number) {
+    conditions.push("plate_number = ?");
+    queryParams.push(plate_number);
+  }
+
+  if (conditions.length > 0) {
+    query += " WHERE " + conditions.join(" AND ");
+  }
+
+  db.query(query, queryParams, (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Server error" });
     }
-
-    db.query(query, queryParams, (err, results) => {
-      if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({ error: "Server error" });
-      }
-      results.forEach((row) => {
-        if (row.start_date) {
-          row.start_date = row.start_date.toISOString().split("T")[0];
-        }
-        if (row.end_date) {
-          row.end_date = row.end_date.toISOString().split("T")[0];
-        }
-      });
-      res.json(results);
+    results.forEach((row) => {
+      if (row.start_date) row.start_date = row.start_date.toISOString().split("T")[0];
+      if (row.end_date) row.end_date = row.end_date.toISOString().split("T")[0];
     });
+    res.json(results);
   });
+});
 
   // GET /api/reservations/:id
   router.get("/:id", (req, res) => {
@@ -126,16 +132,16 @@ router.get('/availability', (req, res) => {
   // POST /api/reservations
   router.post("/", (req, res) => {
     const {
-      customer_name, customer_email, customer_phone, plate_number,
+      customer_name, customer_phone, plate_number,
       start_date, start_time, end_date, end_time, total_price, status, extras
     } = req.body;
   
     db.query(
       `INSERT INTO reservations
-       (customer_name, customer_email, customer_phone, plate_number, 
+       (customer_name, customer_phone, plate_number, 
        start_date, start_time, end_date, end_time, total_price, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [customer_name, customer_email, customer_phone, plate_number, 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,//
+      [customer_name, customer_phone, plate_number, 
        start_date, start_time, end_date, end_time, total_price, status],
       (err, result) => {
         if (err) return res.status(500).json({ error: "Server error creating reservation." });
@@ -166,16 +172,16 @@ router.get('/availability', (req, res) => {
   router.put("/:id", (req, res) => {
     const reservationId = req.params.id;
     const {
-      customer_name, customer_email, customer_phone, plate_number,
+      customer_name, customer_phone, plate_number,
       start_date, start_time, end_date, end_time, total_price, status, extras
     } = req.body;
   
     db.query(
       `UPDATE reservations SET
-       customer_name=?, customer_email=?, customer_phone=?, plate_number=?,
+       customer_name=?, customer_phone=?, plate_number=?,
        start_date=?, start_time=?, end_date=?, end_time=?, total_price=?, status=? 
        WHERE id=?`,
-      [customer_name, customer_email, customer_phone, plate_number, 
+      [customer_name, customer_phone, plate_number, 
        start_date, start_time, end_date, end_time, total_price, status, reservationId],
       (err) => {
         if (err) return res.status(500).json({ error: "Server error updating reservation." });

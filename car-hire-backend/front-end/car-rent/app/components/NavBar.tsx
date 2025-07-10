@@ -77,43 +77,12 @@ const NavBar: React.FC = () => {
             )}
           </div>
         </div>
-
-        {/* Language Selector - Desktop */}
-        <div className="items-center space-x-2 px-4 py-2 text-sm hidden md:flex">
-          <button className="w-10 h-10 rounded-full bg-gradient-to-l to-[#1cb4ec] from-[#1c78ec] text-white flex items-center justify-center">
-            EN
-          </button>
-          {["FR", "DE", "IT", "ES", "RU"].map((lang) => (
-            <button
-              key={lang}
-              className="w-8 h-8 rounded-full text-black hover:text-[#1c7fec] cursor-pointer flex items-center justify-center"
-            >
-              {lang}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Mobile Menu - Full Screen */}
       {menuOpen && (
         <div className="fixed inset-0 bg-white z-50 flex flex-col md:hidden top-[66px] rounded-xl mx-3 overflow-y-auto">
-          {/* Mobile Language Options */}
-          <div className="px-4 py-4 flex items-center gap-4 justify-center border-b border-gray-200">
-            <div className="text-lg">Language</div>
-            <div className="flex items-center gap-4">
-              <button className="w-10 h-10 rounded-full bg-gradient-to-l to-[#1cb4ec] from-[#1c78ec] text-white flex items-center justify-center font-bold">
-                EN
-              </button>
-              {["FR", "DE", "IT", "ES", "RU"].map((lang) => (
-                <button
-                  key={lang}
-                  className="flex items-center justify-center font-bold"
-                >
-                  {lang}
-                </button>
-              ))}
-            </div>
-          </div>
+         
 
           {/* Mobile Menu Links */}
           <div className="flex-1 flex flex-col items-center gap-2 m-6">

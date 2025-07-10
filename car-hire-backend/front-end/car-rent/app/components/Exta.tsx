@@ -1,6 +1,6 @@
 import React from 'react';
 import img1 from '@/public/Assets/percent.svg'
-import img2 from '@/public/Assets/ico_credit_card.svg'
+import img2 from '@/public/Assets/support.svg'
 import img3 from '@/public/Assets/earphone.svg'
 import img4 from '@/public/Assets/cancel.svg'
 import Image from 'next/image';

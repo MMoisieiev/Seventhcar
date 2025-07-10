@@ -9,15 +9,7 @@ import { Navigation, Pagination } from 'swiper/modules';
 
 const offers = [
   {
-    discount: '-25%',
-    label: 'Off',
-    image: '/Assets/Mo-vew.jpg',
-    title: 'Full Day Tour of Mahe Seychelles',
-    description:
-      'Nestled in the heart of the Seychelles, Mahé Island is a paradise waiting to be explored...',
-  },
-  {
-    discount: '-25%',
+    discount: 'up to -30%',
     label: 'Off',
     image: '/Assets/lsland-vew.webp',
     title: 'Long Term Rental',
@@ -25,29 +17,13 @@ const offers = [
       'Long-term car rental is ideal and extremely practical for all business and individual users...',
   },
   {
-    discount: '5%',
-    label: 'On',
-    image: '/Assets/mountain-vew.webp',
-    title: 'The Best of Mahe in 6 Hours',
-    description:
-      'Get the best of your time on Mahé island and discover the city with the insights of a local.',
-  },
-  {
-    discount: '5%',
-    label: 'On',
-    image: '/Assets/mountain-vew.webp',
-    title: 'The Best of Mahe in 6 Hours',
-    description:
-      'Get the best of your time on Mahé island and discover the city with the insights of a local.',
-  },
-  {
-    discount: '5%',
-    label: 'On',
-    image: '/Assets/mountain-vew.webp',
-    title: 'The Best of Mahe in 6 Hours',
-    description:
-      'Get the best of your time on Mahé island and discover the city with the insights of a local.',
-  },
+  discount: '10%',
+  label: 'Off',
+  image: '/Assets/car-park.webp',
+  title: 'Flexible Pick-Up & Drop-Off',
+  description: 'Enjoy the freedom to collect your car when and where it suits you—and return it wherever is most convenient.',
+},
+
 ];
 
 export default function SpecialOffers() {
@@ -55,10 +31,7 @@ export default function SpecialOffers() {
     <div className="px-6 py-10 max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 max-w-5xl mx-auto">
         <h2 className="text-[30px] md:text-[36px] font-bold text-gray-900">Special Offers</h2>
-        <a href="#" className="text-[#1c7fec] font-bold text-[12px] md:text-[13px] flex items-center space-x-1">
-          <span className='text-[#17191c] hover:text-[#1c7fec]'>All Special Offers</span>
-          <ChevronRight className="w-4 h-4" />
-        </a>
+        
       </div>
 
       <Swiper
