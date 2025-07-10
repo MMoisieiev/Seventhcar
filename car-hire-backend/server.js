@@ -27,7 +27,7 @@ require('dotenv').config();
 const db = mysql.createConnection({
     host: 'db-mysql-fra1-06464-do-user-23578538-0.l.db.ondigitalocean.com',
     port: 25060,
-    user: 'doadmin',
+    user: process.env.AIVEN_SERVICE_LOGIN,
     password: process.env.AIVEN_SERVICE_PASSWORD,
     database: 'SeventhCarHire',
     ssl: {
