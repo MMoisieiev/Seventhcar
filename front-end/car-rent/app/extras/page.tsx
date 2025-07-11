@@ -6,7 +6,7 @@ const Booking = () => {
   return (
     <div className="max-w-7xl mx-auto py-10">
       <h3 className="text-[30px] md:text-[36px] font-bold text-center mb-2 mt-14">
-        Booking
+        Extras
       </h3>
       <div className="px-3 md:px-10 py-10 grid grid-cols-1 md:grid-cols-3 gap-6">
         <BookingItem />

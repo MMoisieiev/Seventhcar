@@ -5,29 +5,66 @@ import { ChevronRight } from "lucide-react";
 import fuelIcon from "@/public/Assets/ico_fuel.svg";
 import doorIcon from "@/public/Assets/ico_doors.svg";
 import bagIcon from "@/public/Assets/ico_bags.svg";
+import { useRouter } from "next/navigation";
 
 const Vehicles = () => {
   const [cars, setCars] = useState([]);
+    const router = useRouter();
 
+      const handleBookNow = (car) => {
+    const reservation = localStorage.getItem("pendingReservation");
+    if (!reservation) {
+      // No reservation, redirect to home
+      router.push("/");
+      return;
+    }
+    // Save selected car details (plate number, price) for insurance step
+    localStorage.setItem("selectedCar", JSON.stringify({
+      plate_number: car.plate_number,
+      price_per_day_eur: car.price_per_day_eur,
+      model: car.model, // (optional)
+    }));
+    router.push("/insurance");
+  };
   useEffect(() => {
-    console.log("Fetching from:", `${process.env.NEXT_PUBLIC_API_URL}/cars`);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/cars`)
-      .then((res) => res.json())
-      .then((data) => {
-        const mappedCars = data.map(car => ({
-          model: car.car_name,
-          category: "",
-          image: car.car_image_url ? `http://localhost:3001/uploads/${car.car_image_url}` : "/no-image.png",
-          fuel: car.fuel_type,
-          doors: car.door_count,
-          price_per_day_eur: car.price,
-        }));
-        setCars(mappedCars);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch cars:", err);
-      });
-  }, []);
+  let fetchUrl = `${process.env.NEXT_PUBLIC_API_URL}/cars`;
+
+  // Check for reservation info in localStorage
+  const resStr = localStorage.getItem("pendingReservation");
+  if (resStr) {
+    try {
+      const reservation = JSON.parse(resStr);
+      if (reservation.pickupDate && reservation.returnDate) {
+        fetchUrl = `${process.env.NEXT_PUBLIC_API_URL}/cars/available?startDate=${reservation.pickupDate}&endDate=${reservation.returnDate}`;
+      }
+    } catch (e) {
+      // fallback to all cars
+    }
+  }
+
+  console.log("Fetching from:", fetchUrl);
+
+  fetch(fetchUrl)
+    .then((res) => res.json())
+    .then((data) => {
+      const mappedCars = data.map(car => ({
+        model: car.car_name,
+        category: "",
+        image: car.car_image_url ? `http://localhost:3001/uploads/${car.car_image_url}` : "/no-image.png",
+        fuel: car.fuel_type,
+        doors: car.door_count,
+        price_per_day_eur: car.price,
+        plate_number: car.plate_number,
+      }));
+      setCars(mappedCars);
+    })
+    .catch((err) => {
+      console.error("Failed to fetch cars:", err);
+    });
+    
+
+}, []);
+
 
   return (
     <div className="max-w-7xl mx-auto py-10 mt-14">
@@ -101,12 +138,15 @@ const Vehicles = () => {
                   )}
                 </div>
 
-                <button className="bg-gradient-to-br from-[#f8f8f8] to-[#f8f8f8] group-hover:from-[#59ace3] group-hover:to-[#0066ff] px-4 py-2 text-sm rounded transition-all duration-300 flex items-center gap-2 font-semibold cursor-pointer">
-                  <div className="bg-white w-7 h-7 flex items-center justify-center rounded-full text-[#1c7fec] relative right-7">
-                    <ChevronRight size={14} />
-                  </div>
-                  <span className="group-hover:text-white">Book now</span>
-                </button>
+                <button
+  className="bg-gradient-to-br from-[#f8f8f8] to-[#f8f8f8] group-hover:from-[#59ace3] group-hover:to-[#0066ff] px-4 py-2 text-sm rounded transition-all duration-300 flex items-center gap-2 font-semibold cursor-pointer"
+  onClick={() => handleBookNow(car)}
+>
+  <div className="bg-white w-7 h-7 flex items-center justify-center rounded-full text-[#1c7fec] relative right-7">
+    <ChevronRight size={14} />
+  </div>
+  <span className="group-hover:text-white">Book now</span>
+</button>
               </div>
             </div>
           </div>

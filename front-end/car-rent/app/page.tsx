@@ -1,3 +1,5 @@
+"use client";
+import { useEffect } from "react";
 import Image from "next/image";
 import AboutAndCom from "./components/AboutAndCom";
 import BusinessOffer from "./components/BusinessOffer";
@@ -10,6 +12,12 @@ import { SupportCenter } from "./components/Suppot";
 import carImg from "@/public/Assets/hero-cars.png";
 
 export default function Home() {
+  // Clean up localStorage when landing on home page
+  useEffect(() => {
+    localStorage.removeItem("pendingReservation");
+    localStorage.removeItem("selectedCar");
+  }, []);
+
   return (
     <div>
       <InformBox />

@@ -1,9 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Check, Info, X } from "lucide-react";
 import Image from "next/image";
 import infoIcon from "@/public/Assets/ico_tooltip.svg";
+import { useRouter } from "next/navigation";
+
+
+
+
 
 // Define the structure for insurance plan details
 interface InsurancePlanDetails {
@@ -48,14 +53,78 @@ const insuranceData: IInsuranceItem[] = [
   { title: "PAI", basic: false, medium: false, full: true },
 ];
 
+// === Dynamic Pricing Logic ===
+
+// Plan key to extra ID mapping (from your IDs above)
+const protectionExtraIds = { basic: 1, medium: 2, full: 3 };
+
+function getAllExtras() {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem("allExtras") || "[]");
+  } catch {
+    return [];
+  }
+}
+function getPendingReservation() {
+  if (typeof window === "undefined") return null;
+  try {
+    return JSON.parse(localStorage.getItem("pendingReservation") || "{}");
+  } catch {
+    return null;
+  }
+}
+
+// Get extra price by ID
+function getExtraPrice(id: number, allExtras: any[]) {
+  const found = allExtras.find((x: any) => Number(x.id) === id);
+  return found ? Number(found.price) : 0;
+}
+
+// Calculate booking days (+1 to be inclusive)
+function getBookingDays(reservation: any) {
+  if (!reservation || !reservation.pickupDate || !reservation.returnDate) return 1;
+  const start = new Date(reservation.pickupDate);
+  const end = new Date(reservation.returnDate);
+  const diff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  return diff + 1;
+}
+
 const Insurance = () => {
   const [hoveredCol, setHoveredCol] = useState<PlanKey | null>(null);
   const [activeTab, setActiveTab] = useState<PlanKey>("basic");
-
+  
   const getHoverClass = (col: PlanKey): string =>
     hoveredCol === col ? "bg-white cursor-pointer" : "";
 
   const plans: PlanKey[] = ["basic", "medium", "full"];
+  const router = useRouter();
+
+  const handleSelectProtection = (protectionId: number) => {
+    const reservation = JSON.parse(localStorage.getItem("pendingReservation") || "{}");
+    reservation.extras = [protectionId];
+    localStorage.setItem("pendingReservation", JSON.stringify(reservation));
+    router.push("/extras");
+  };
+  // -- Calculate dynamic prices --
+  const [allExtras, setAllExtras] = useState<any[]>([]);
+  const reservation = getPendingReservation();
+  const bookingDays = getBookingDays(reservation);
+
+  useEffect(() => {
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/extras`)
+    .then((res) => res.json())
+    .then((data) => setAllExtras(data))
+    .catch((err) => {
+      setAllExtras([]); // fallback to empty array if error
+    });
+}, []);
+
+  const protectionPrices = {
+    basic: getExtraPrice(protectionExtraIds.basic, allExtras),
+    medium: getExtraPrice(protectionExtraIds.medium, allExtras),
+    full: getExtraPrice(protectionExtraIds.full, allExtras),
+  }; 
 
   return (
     <div className="max-w-5xl mx-auto py-10 mt-12">
@@ -96,6 +165,29 @@ const Insurance = () => {
               {insuranceData.slice(1).map((item) => {
                 const currentData = item[activeTab];
 
+                // Responsibility row with dynamic price
+                if (item.title === "Responsibility (Excess)") {
+                  return (
+                    <div
+                      className="flex w-full justify-between items-center mb-4"
+                      key={item.title}
+                    >
+                      <h3 className="w-1/2 flex gap-2">
+                        <Info className="bg-black opacity-20 text-white rounded-full" />
+                        {item.title}
+                      </h3>
+                      <div className="w-1/2 flex flex-col justify-end items-end">
+                        <span className="font-semibold">
+                          {protectionPrices[activeTab] * bookingDays} EUR
+                        </span>
+                        <span className="text-xs opacity-60">
+                          ({protectionPrices[activeTab]} × {bookingDays} days)
+                        </span>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     className="flex w-full justify-between items-center mb-4"
@@ -105,12 +197,12 @@ const Insurance = () => {
                       <Info className="bg-black opacity-20 text-white rounded-full" />
                       {item.title}
                     </h3>
-
                     <div className="w-1/2 flex justify-end">
                       {typeof currentData === "object" &&
                       "price" in currentData ? (
                         <span className="font-semibold">
-                          {currentData.price} {currentData.unit}
+                          {(currentData as InsurancePlanDetails).price}{" "}
+                          {(currentData as InsurancePlanDetails).unit}
                         </span>
                       ) : currentData === true ? (
                         <Check className="bg-blue-600 p-1 text-white rounded-full" />
@@ -122,20 +214,26 @@ const Insurance = () => {
                 );
               })}
 
+              {/* Mobile Total Price (Bottom) */}
               <div className="flex justify-end items-end mt-10 gap-1 leading-none">
                 <span className="text-4xl font-bold">
-                  {
-                    (insuranceData[1][activeTab] as InsurancePlanDetails)
-                      ?.daily_price
-                  }
+                  {protectionPrices[activeTab] * bookingDays}
                 </span>
-                <span className="text-sm pb-[2px]">EUR / day</span>
+                <span className="text-sm pb-[2px]">EUR / total</span>
               </div>
+              <div className="flex justify-end mt-4">
+  <button
+    className="px-6 py-3 bg-gradient-to-br from-[#f8f8f8] to-[#f8f8f8] hover:from-[#59ace3] hover:to-[#0066ff] hover:text-white rounded-lg hover:brightness-110 font-bold"
+    onClick={() => handleSelectProtection(protectionExtraIds[activeTab])}
+  >
+    Select
+  </button>
+</div>
             </div>
           </div>
 
           {/* Desktop Table */}
-          <table className="w-full text-center border-collapse hidden md:block">
+          <table className="w-full text-center border-collapse hidden md:table">
             <thead>
               <tr>
                 <th className="p-3">{insuranceData[0].title}</th>
@@ -153,7 +251,6 @@ const Insurance = () => {
                 ))}
               </tr>
             </thead>
-
             <tbody>
               {insuranceData.slice(1).map((item, index) => {
                 const rowClass = index % 2 === 0 ? "bg-gray-100" : "";
@@ -164,65 +261,86 @@ const Insurance = () => {
                       <Image src={infoIcon} alt="info icon" />
                       {item.title}
                     </td>
-
-                    {plans.map((planKey) => (
-                      <td
-                        key={planKey}
-                        className={`p-3 transition duration-200 text-lg font-bold ${getHoverClass(
-                          planKey
-                        )}`}
-                        onMouseEnter={() => setHoveredCol(planKey)}
-                        onMouseLeave={() => setHoveredCol(null)}
-                      >
-                        {typeof item[planKey] === "object" &&
-                        "price" in item[planKey] ? (
-                          `${(item[planKey] as InsurancePlanDetails).price} ${
-                            (item[planKey] as InsurancePlanDetails).unit
-                          }`
-                        ) : item[planKey] === true ? (
-                          <div className="flex justify-center">
-                            <Check className="bg-gradient-to-br from-[#59ace3] to-[#0066ff] p-1 rounded-full text-white" />
-                          </div>
-                        ) : (
-                          <div className="flex justify-center">
-                            <X className="bg-gray-50 text-gray-500 rounded-full p-1" />
-                          </div>
-                        )}
-                      </td>
-                    ))}
+                    {plans.map((planKey) => {
+                      // Dynamic price for responsibility
+                      if (item.title === "Responsibility (Excess)") {
+                        return (
+                          <td
+                            key={planKey}
+                            className={`p-3 transition duration-200 text-lg font-bold ${getHoverClass(
+                              planKey
+                            )}`}
+                            onMouseEnter={() => setHoveredCol(planKey)}
+                            onMouseLeave={() => setHoveredCol(null)}
+                          >
+                            {protectionPrices[planKey] * bookingDays} EUR
+                            <span className="text-xs block mt-1 opacity-60">
+                              ({protectionPrices[planKey]} × {bookingDays} days)
+                            </span>
+                          </td>
+                        );
+                      }
+                      // Default
+                      return (
+                        <td
+                          key={planKey}
+                          className={`p-3 transition duration-200 text-lg font-bold ${getHoverClass(
+                            planKey
+                          )}`}
+                          onMouseEnter={() => setHoveredCol(planKey)}
+                          onMouseLeave={() => setHoveredCol(null)}
+                        >
+                          {typeof item[planKey] === "object" &&
+                          "price" in item[planKey] ? (
+                            <>
+                              {(item[planKey] as InsurancePlanDetails).price}{" "}
+                              {(item[planKey] as InsurancePlanDetails).unit}
+                            </>
+                          ) : item[planKey] === true ? (
+                            <div className="flex justify-center">
+                              <Check className="bg-gradient-to-br from-[#59ace3] to-[#0066ff] p-1 rounded-full text-white" />
+                            </div>
+                          ) : (
+                            <div className="flex justify-center">
+                              <X className="bg-gray-50 text-gray-500 rounded-full p-1" />
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })}
 
+              {/* Table footer, total price for each plan */}
               <tr>
                 <td></td>
                 {plans.map((planKey) => (
                   <td key={planKey} className="font-bold text-2xl">
-                    {
-                      (insuranceData[1][planKey] as InsurancePlanDetails)
-                        ?.daily_price
-                    }
+                    {protectionPrices[planKey] * bookingDays} EUR
                   </td>
                 ))}
               </tr>
 
+              {/* Select button row */}
               <tr>
-                <td></td>
-                {plans.map((planKey) => (
-                  <td
-                    key={planKey}
-                    className={`p-3 transition duration-200 ${getHoverClass(
-                      planKey
-                    )}`}
-                    onMouseEnter={() => setHoveredCol(planKey)}
-                    onMouseLeave={() => setHoveredCol(null)}
-                  >
-                    <button className="px-4 py-2 bg-gradient-to-br from-[#f8f8f8] to-[#f8f8f8] hover:from-[#59ace3] hover:to-[#0066ff] hover:text-white rounded-lg hover:brightness-110 w-full">
-                      Select
-                    </button>
-                  </td>
-                ))}
-              </tr>
+  <td></td>
+  {plans.map((planKey) => (
+    <td
+      key={planKey}
+      className={`p-3 transition duration-200 ${getHoverClass(planKey)}`}
+      onMouseEnter={() => setHoveredCol(planKey)}
+      onMouseLeave={() => setHoveredCol(null)}
+    >
+      <button
+        className="px-4 py-2 bg-gradient-to-br from-[#f8f8f8] to-[#f8f8f8] hover:from-[#59ace3] hover:to-[#0066ff] hover:text-white rounded-lg hover:brightness-110 w-full"
+        onClick={() => handleSelectProtection(protectionExtraIds[planKey])}
+      >
+        Select
+      </button>
+    </td>
+  ))}
+</tr>
             </tbody>
           </table>
         </div>
