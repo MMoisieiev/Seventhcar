@@ -132,16 +132,16 @@ router.get('/availability', (req, res) => {
   // POST /api/reservations
   router.post("/", (req, res) => {
     const {
-      customer_name, customer_phone, plate_number,
+      customer_name, customer_email, customer_phone, plate_number,
       start_date, start_time, end_date, end_time, total_price, status, extras
     } = req.body;
   
     db.query(
       `INSERT INTO reservations
-       (customer_name, customer_phone, plate_number, 
+       (customer_name, customer_email, customer_phone, plate_number, 
        start_date, start_time, end_date, end_time, total_price, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,//
-      [customer_name, customer_phone, plate_number, 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,//
+      [customer_name, customer_email, customer_phone, plate_number, 
        start_date, start_time, end_date, end_time, total_price, status],
       (err, result) => {
         if (err) return res.status(500).json({ error: "Server error creating reservation." });
@@ -172,16 +172,16 @@ router.get('/availability', (req, res) => {
   router.put("/:id", (req, res) => {
     const reservationId = req.params.id;
     const {
-      customer_name, customer_phone, plate_number,
+       customer_name, customer_email, customer_phone, plate_number,
       start_date, start_time, end_date, end_time, total_price, status, extras
     } = req.body;
   
     db.query(
       `UPDATE reservations SET
-       customer_name=?, customer_phone=?, plate_number=?,
+       customer_name=?,  customer_email=?,customer_phone=?, plate_number=?,
        start_date=?, start_time=?, end_date=?, end_time=?, total_price=?, status=? 
        WHERE id=?`,
-      [customer_name, customer_phone, plate_number, 
+      [customer_name, customer_email, customer_phone, plate_number, 
        start_date, start_time, end_date, end_time, total_price, status, reservationId],
       (err) => {
         if (err) return res.status(500).json({ error: "Server error updating reservation." });

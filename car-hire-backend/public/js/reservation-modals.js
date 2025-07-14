@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(reservation => {
           document.getElementById("modalCustomer").innerText = reservation.customer_name;
+          document.getElementById("modalEmail").innerText = reservation.customer_email|| "-";
           document.getElementById("modalPlateNumber").innerText = reservation.plate_number;
           document.getElementById("modalStartDate").innerText = reservation.start_date;
           document.getElementById("modalEndDate").innerText = reservation.end_date;
@@ -134,6 +135,7 @@ document.addEventListener("DOMContentLoaded", function () {
           .then(reservation => {
             document.getElementById("editReservationId").value = reservation.id;
             document.getElementById("editCustomerName").value = reservation.customer_name;
+            document.getElementById("editCustomerEmail").value     = reservation.customer_email;
             document.getElementById("editCustomerPhone").value = reservation.customer_phone;
             document.getElementById("editStartDate").value = reservation.start_date;
             document.getElementById("editStartTime").value = reservation.start_time;
@@ -191,6 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
       
       const updatedReservation = {
         customer_name: document.getElementById("editCustomerName").value,
+         customer_email: document.getElementById("editCustomerEmail").value,
         customer_phone: document.getElementById("editCustomerPhone").value,
         plate_number: document.getElementById("editPlateNumber").value,
         start_date: document.getElementById("editStartDate").value,
@@ -229,6 +232,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(reservation => {
           const updatedReservation = {
             customer_name:  reservation.customer_name,
+            customer_email: reservation.customer_email,
             customer_phone: reservation.customer_phone,
             plate_number:   reservation.plate_number,
             start_date:     reservation.start_date,
