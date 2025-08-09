@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Car Availability Calendar</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .calendar-container { max-width: 950px; margin: 2rem auto; }
+    .calendar-header { display: flex; align-items: center; justify-content: space-between; }
+    .calendar-grid { display: flex; flex-wrap: wrap; }
+    .calendar-day { width: 14.28%; border: 1px solid #ddd; min-height: 90px; text-align: center; padding: 6px 2px; box-sizing: border-box; font-size: 1.1em; position:relative; }
+    .calendar-day.disabled { background: #f3f3f3; color: #aaa; }
+    .calendar-day .free-cars { display:block; margin-top: 8px; font-weight: 500; }
+    .calendar-day.green { background: #299f1a; color: #fff; }
+    .calendar-day.orange { background: #f9b211; color: #222; }
+    .calendar-day.red { background: #d83a23; color: #fff; }
+    .calendar-day .car-list-btn { 
+      position:absolute; right:3px; top:3px; border:none; background:#fff; color:#299f1a; font-weight:bold; border-radius:50%; width:24px; height:24px; line-height:21px; padding:0; cursor:pointer; }
+    @media (max-width: 700px) { .calendar-day { font-size:0.95em; min-height:65px; } }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR PLACEHOLDER -->
+  <div id="navbar-placeholder"></div>
+  <script>
+    fetch("/partials/navbar.html")
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById("navbar-placeholder").innerHTML = html;
+        // Dynamically load navbar.js
+        const navbarScript = document.createElement('script');
+        navbarScript.src = "/js/navbar.js";
+        document.body.appendChild(navbarScript);
+
+        navbarScript.onload = function() {
+          // Only after navbar.js is loaded, run calendar script
+          const calendarScript = document.createElement('script');
+          calendarScript.src = "/js/availabilityCalendar.js";
+          document.body.appendChild(calendarScript);
+        };
+      })
+      .catch(error => console.error("Error loading navbar:", error));
+  </script>
+
+  <div class="container calendar-container">
+    <h2 class="mb-4 text-center">Car Availability Calendar</h2>
+    <div class="calendar-header mb-2">
+      <button id="prevMonthBtn" class="btn btn-secondary btn-sm">Previous</button>
+      <h3 id="calendarMonthYear" class="mb-0"></h3>
+      <button id="nextMonthBtn" class="btn btn-secondary btn-sm">Next</button>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
+</body>
+</html>

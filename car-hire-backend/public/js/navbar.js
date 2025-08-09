@@ -5,11 +5,15 @@
 
   // Define the HTML for admin links
   const adminLinks = `
+  
     <li class="nav-item">
       <a class="nav-link font-weight-bold" href="cars" style="font-size: 1.1rem;">Vehicles</a>
     </li>
     <li class="nav-item">
       <a class="nav-link font-weight-bold" href="reservations" style="font-size: 1.1rem;">Reservations</a>
+    </li>
+    <li class="nav-item">
+    <a class="nav-link font-weight-bold" href="calendar" style="font-size: 1.1rem;">Availability Calendar</a>
     </li>
     <li class="nav-item">
       <a class="nav-link font-weight-bold" id="extrasLink" href="extras" style="font-size: 1.1rem;">Extras</a>

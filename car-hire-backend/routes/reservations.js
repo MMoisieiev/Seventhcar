@@ -8,7 +8,7 @@ module.exports = (db) => {
     const yyyy = dateObj.getFullYear();
     const mm   = String(dateObj.getMonth() + 1).padStart(2, "0");
     const dd   = String(dateObj.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 router.get('/availability', (req, res) => {
@@ -16,49 +16,64 @@ router.get('/availability', (req, res) => {
   const monthParam = parseInt(req.query.month, 10);
 
   if (!yearParam || !monthParam || monthParam < 1 || monthParam > 12) {
-      return res.status(400).json({ error: "Please provide valid 'year' and 'month' (1..12)." });
+    return res.status(400).json({ error: "Please provide valid 'year' and 'month' (1..12)." });
   }
 
   const startDate = new Date(yearParam, monthParam - 1, 1); // JS months are 0-based
-  const endDate = new Date(yearParam, monthParam, 0);     // day=0 => last day of that month
+  const endDate = new Date(yearParam, monthParam, 0); // day=0 => last day of that month
   const startStr = formatDate(startDate); // 'YYYY-MM-DD'
   const endStr = formatDate(endDate);
 
+  // 1. Get ALL car plate numbers
+  db.query("SELECT plate_number FROM cars", (err, carRows) => {
+    if (err) {
+      console.error("Error fetching cars:", err);
+      return res.status(500).json({ error: "Database error fetching cars." });
+    }
+    const allCars = carRows.map(row => row.plate_number);
 
-  const sql = `
-    WITH RECURSIVE allDays (day) AS (
-       SELECT ? AS day
-       UNION ALL
-       SELECT DATE_ADD(day, INTERVAL 1 DAY)
-       FROM allDays
-       WHERE day < ?
-    ),
-    totalCars AS (
-       SELECT COUNT(*) AS total FROM cars
-    )
-    SELECT 
-       allDays.day AS date,
-       totalCars.total - COUNT(r.id) AS freeCars
-    FROM allDays
-    CROSS JOIN totalCars
-    LEFT JOIN reservations r
-           ON r.status IN ('Pending','Approved')
-          AND r.start_date <= allDays.day
-          AND r.end_date   >= allDays.day
-    GROUP BY allDays.day, totalCars.total
-    ORDER BY allDays.day
-  `;
-
-  db.query(sql, [startStr, endStr], (err, results) => {
+    // 2. For each day, find booked cars (pending/approved) and subtract from all cars
+    const sql = `
+      WITH RECURSIVE allDays (day) AS (
+        SELECT ? AS day
+        UNION ALL
+        SELECT DATE_ADD(day, INTERVAL 1 DAY)
+        FROM allDays
+        WHERE day < ?
+      )
+      SELECT
+        allDays.day AS date,
+        IFNULL(GROUP_CONCAT(DISTINCT r.plate_number), '') AS bookedCars
+      FROM allDays
+      LEFT JOIN reservations r
+        ON r.status IN ('Pending','Approved')
+        AND r.start_date <= allDays.day
+        AND r.end_date >= allDays.day
+      GROUP BY allDays.day
+      ORDER BY allDays.day
+    `;
+    db.query(sql, [startStr, endStr], (err, dayRows) => {
       if (err) {
-          console.error("Error in availability query:", err);
-          return res.status(500).json({ error: 'Database error in availability query.' });
+        console.error("Error in availability query:", err);
+        return res.status(500).json({ error: 'Database error in availability query.' });
       }
 
-
-      res.json(results);
+      // Build the response
+      const result = dayRows.map(row => {
+        // bookedCars will be a comma-separated string or ''
+        const bookedSet = row.bookedCars ? row.bookedCars.split(',') : [];
+        const available = allCars.filter(pn => !bookedSet.includes(pn));
+        return {
+          date: row.date,
+          freeCars: available.length,
+          availableCars: available // array of plate numbers
+        };
+      });
+      res.json(result);
+    });
   });
 });
+
 
 
   // GET /api/reservations
@@ -132,17 +147,17 @@ router.get('/availability', (req, res) => {
   // POST /api/reservations
   router.post("/", (req, res) => {
     const {
-      customer_name, customer_email, customer_phone, plate_number,
-      start_date, start_time, end_date, end_time, total_price, status, extras
-    } = req.body;
+  customer_name, customer_email, customer_phone, flight_number, plate_number,
+  start_date, start_time, end_date, end_time, total_price, status, extras
+} = req.body;
   
     db.query(
-      `INSERT INTO reservations
-       (customer_name, customer_email, customer_phone, plate_number, 
-       start_date, start_time, end_date, end_time, total_price, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,//
-      [customer_name, customer_email, customer_phone, plate_number, 
-       start_date, start_time, end_date, end_time, total_price, status],
+  `INSERT INTO reservations
+   (customer_name, customer_email, customer_phone, flight_number, plate_number, 
+   start_date, start_time, end_date, end_time, total_price, status) 
+   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  [customer_name, customer_email, customer_phone, flight_number, plate_number,
+   start_date, start_time, end_date, end_time, total_price, status],
       (err, result) => {
         if (err) return res.status(500).json({ error: "Server error creating reservation." });
   
@@ -172,17 +187,17 @@ router.get('/availability', (req, res) => {
   router.put("/:id", (req, res) => {
     const reservationId = req.params.id;
     const {
-       customer_name, customer_email, customer_phone, plate_number,
+       customer_name, customer_email, customer_phone,flight_number, plate_number,
       start_date, start_time, end_date, end_time, total_price, status, extras
     } = req.body;
   
     db.query(
-      `UPDATE reservations SET
-       customer_name=?,  customer_email=?,customer_phone=?, plate_number=?,
-       start_date=?, start_time=?, end_date=?, end_time=?, total_price=?, status=? 
-       WHERE id=?`,
-      [customer_name, customer_email, customer_phone, plate_number, 
-       start_date, start_time, end_date, end_time, total_price, status, reservationId],
+  `UPDATE reservations SET
+   customer_name=?, customer_email=?, customer_phone=?, flight_number=?, plate_number=?,
+   start_date=?, start_time=?, end_date=?, end_time=?, total_price=?, status=?
+   WHERE id=?`,
+  [customer_name, customer_email, customer_phone, flight_number, plate_number,
+   start_date, start_time, end_date, end_time, total_price, status, reservationId],
       (err) => {
         if (err) return res.status(500).json({ error: "Server error updating reservation." });
   

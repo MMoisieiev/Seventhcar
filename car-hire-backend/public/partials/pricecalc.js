@@ -81,7 +81,11 @@ async function autoCalculatePrice() {
   priceField.value = (carPrice + extrasTotal).toFixed(2);
 }
 
-
+function parseLocalDateTime(dateStr, timeStr) {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return new Date(year, month - 1, day, hours, minutes);
+}
 
 async function checkIfDatesConflict(plateNumber, startDT, endDT, selfId = null) {
   try {
@@ -91,8 +95,11 @@ async function checkIfDatesConflict(plateNumber, startDT, endDT, selfId = null) 
 
     return list.some(r => {
       if (selfId && r.id == selfId) return false;
-      const rStart = new Date(`${r.start_date}T${r.start_time}`);
-      const rEnd   = new Date(`${r.end_date}T${r.end_time}`);
+
+      const rStart = parseLocalDateTime(r.start_date, r.start_time);
+      const rEnd   = parseLocalDateTime(r.end_date, r.end_time);
+
+      // Ensures no overlapping reservation
       return startDT < rEnd && rStart < endDT;
     });
   } catch (e) {
@@ -100,6 +107,7 @@ async function checkIfDatesConflict(plateNumber, startDT, endDT, selfId = null) 
     return false;
   }
 }
+
 
 // expose globally
 window.registerPriceAutoCalc  = registerPriceAutoCalc;

@@ -44,7 +44,9 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(reservation => {
           document.getElementById("modalCustomer").innerText = reservation.customer_name;
-          document.getElementById("modalEmail").innerText = reservation.customer_email|| "-";
+          document.getElementById("modalEmail").innerText = reservation.customer_email || "-";
+          document.getElementById("modalPhone").innerText = reservation.customer_phone || "-";
+          document.getElementById("modalFlightNumber").innerText = reservation.flight_number || "-";
           document.getElementById("modalPlateNumber").innerText = reservation.plate_number;
           document.getElementById("modalStartDate").innerText = reservation.start_date;
           document.getElementById("modalEndDate").innerText = reservation.end_date;
@@ -127,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!reservationId) {
         // Creating NEW reservation (no selection)
         document.getElementById("editReservationForm").reset();
-        populatePlateNumberDropdown();  // <-- No pre-selection
+        populatePlateNumberDropdown();
       } else {
         // EDITING existing reservation
         fetch(`/api/reservations/${reservationId}`)
@@ -135,8 +137,9 @@ document.addEventListener("DOMContentLoaded", function () {
           .then(reservation => {
             document.getElementById("editReservationId").value = reservation.id;
             document.getElementById("editCustomerName").value = reservation.customer_name;
-            document.getElementById("editCustomerEmail").value     = reservation.customer_email;
+            document.getElementById("editCustomerEmail").value = reservation.customer_email;
             document.getElementById("editCustomerPhone").value = reservation.customer_phone;
+            document.getElementById("editFlightNumber").value = reservation.flight_number || "";
             document.getElementById("editStartDate").value = reservation.start_date;
             document.getElementById("editStartTime").value = reservation.start_time;
             document.getElementById("editEndDate").value = reservation.end_date;
@@ -144,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editTotalPrice").value = reservation.total_price;
             document.getElementById("editReservationStatus").value = reservation.status;
 
-            populatePlateNumberDropdown(reservation.plate_number);  // <-- Preselect existing plate
+            populatePlateNumberDropdown(reservation.plate_number);
 
             fetch(`/api/reservations/${reservationId}/extras`)
               .then(res => res.json())
@@ -159,11 +162,44 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       setTimeout(() => {
-  window.registerPriceAutoCalc();
-}, 50);
+        window.registerPriceAutoCalc();
+      }, 50);
+
       document.querySelectorAll('.extra-checkbox').forEach(chk =>
         chk.addEventListener('change', window.autoCalculatePrice)
       );
+
+      // --- Add real-time conflict checking logic ---
+      async function validateDates() {
+        const plateNumber = document.getElementById("editPlateNumber").value;
+        const startDate = document.getElementById("editStartDate").value;
+        const startTime = document.getElementById("editStartTime").value;
+        const endDate = document.getElementById("editEndDate").value;
+        const endTime = document.getElementById("editEndTime").value;
+
+        if (!plateNumber || !startDate || !startTime || !endDate || !endTime) {
+          return;
+        }
+
+        const startDT = new Date(`${startDate}T${startTime}`);
+        const endDT = new Date(`${endDate}T${endTime}`);
+
+        const conflict = await checkIfDatesConflict(plateNumber, startDT, endDT, reservationId);
+
+        if (conflict) {
+          alert("Warning: The selected car is already booked for these dates/times. Please select a different date/time or car.");
+          document.getElementById("saveReservationChanges").disabled = true;
+        } else {
+          document.getElementById("saveReservationChanges").disabled = false;
+        }
+      }
+
+      ["editPlateNumber", "editStartDate", "editStartTime", "editEndDate", "editEndTime"].forEach(id => {
+        document.getElementById(id).addEventListener("change", validateDates);
+      });
+
+      // Initial validation on load
+      validateDates();
 
       $("#reservationModal").modal("hide");
       $("#editReservationModal").modal("show");
@@ -171,55 +207,65 @@ document.addEventListener("DOMContentLoaded", function () {
     .catch(err => console.error("Error loading extras list:", err));
 }
 
+
     
   
     // -------------------------------------------------------------------
     // 4) Save (Create or Update) Reservation
     // -------------------------------------------------------------------
     function saveReservationChanges() {
-      const reservationId = document.getElementById("editReservationId").value.trim();
-      
-      // Calculate rental duration
-      const start = new Date(document.getElementById("editStartDate").value);
-      const end   = new Date(document.getElementById("editEndDate").value);
-      const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-      
-      // Collect selected extras (default to full duration)
-      const extras = Array.from(document.querySelectorAll('.extra-checkbox:checked')).map(chk => ({
-        extra_id: parseInt(chk.value, 10),
-        days: diffDays,
-        price_at_booking: parseFloat(document.getElementById(`extra-price-${chk.value}`).dataset.price)
-      }));
-      
-      const updatedReservation = {
-        customer_name: document.getElementById("editCustomerName").value,
-         customer_email: document.getElementById("editCustomerEmail").value,
-        customer_phone: document.getElementById("editCustomerPhone").value,
-        plate_number: document.getElementById("editPlateNumber").value,
-        start_date: document.getElementById("editStartDate").value,
-        start_time: document.getElementById("editStartTime").value,
-        end_date: document.getElementById("editEndDate").value,
-        end_time: document.getElementById("editEndTime").value,
-        total_price: document.getElementById("editTotalPrice").value,
-        status: document.getElementById("editReservationStatus").value,
-        extras // full-duration extras by default
-      };
-      
-      const method = reservationId ? "PUT" : "POST";
-      const url = reservationId ? `/api/reservations/${reservationId}` : "/api/reservations";
-      
-      fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedReservation)
-      })
-      .then(response => response.json())
-      .then(() => {
-        $("#editReservationModal").modal("hide");
-        window.fetchReservations();
-      })
-      .catch(error => console.error("Error saving reservation:", error));
-    }
+  const reservationId = document.getElementById("editReservationId").value.trim();
+
+  // Check if a car is selected
+  const plateNumber = document.getElementById("editPlateNumber").value;
+  if (!plateNumber) {
+    alert("Please select a car plate number before saving the reservation.");
+    return;
+  }
+
+  // Calculate rental duration
+  const start = new Date(document.getElementById("editStartDate").value);
+  const end   = new Date(document.getElementById("editEndDate").value);
+  const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+  // Collect selected extras (default to full duration)
+  const extras = Array.from(document.querySelectorAll('.extra-checkbox:checked')).map(chk => ({
+    extra_id: parseInt(chk.value, 10),
+    days: diffDays,
+    price_at_booking: parseFloat(document.getElementById(`extra-price-${chk.value}`).dataset.price)
+  }));
+
+  const updatedReservation = {
+    customer_name: document.getElementById("editCustomerName").value,
+    customer_email: document.getElementById("editCustomerEmail").value,
+    customer_phone: document.getElementById("editCustomerPhone").value,
+    flight_number: document.getElementById("editFlightNumber").value,
+    plate_number: plateNumber, // Already retrieved earlier
+    start_date: document.getElementById("editStartDate").value,
+    start_time: document.getElementById("editStartTime").value,
+    end_date: document.getElementById("editEndDate").value,
+    end_time: document.getElementById("editEndTime").value,
+    total_price: document.getElementById("editTotalPrice").value,
+    status: document.getElementById("editReservationStatus").value,
+    extras
+  };
+
+  const method = reservationId ? "PUT" : "POST";
+  const url = reservationId ? `/api/reservations/${reservationId}` : "/api/reservations";
+
+  fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updatedReservation)
+  })
+  .then(response => response.json())
+  .then(() => {
+    $("#editReservationModal").modal("hide");
+    window.fetchReservations();
+  })
+  .catch(error => console.error("Error saving reservation:", error));
+}
+
   
     
   
@@ -234,6 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
             customer_name:  reservation.customer_name,
             customer_email: reservation.customer_email,
             customer_phone: reservation.customer_phone,
+            flight_number: reservation.flight_number,
             plate_number:   reservation.plate_number,
             start_date:     reservation.start_date,
             start_time:     reservation.start_time,

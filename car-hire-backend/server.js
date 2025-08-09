@@ -69,6 +69,10 @@ app.get('/cars', isAuthenticated, (req, res) => {
 app.get('/reservations', isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pages', 'reservations.html'));
 });
+// calendar
+app.get('/calendar', isAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pages', 'calendar.html'));
+});
 // 4)Booking Page (client Side)
 app.get('/bookingpage', (req, res) => {
     // index.html is your home page
