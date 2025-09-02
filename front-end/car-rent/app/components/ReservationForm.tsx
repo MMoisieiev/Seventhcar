@@ -44,8 +44,8 @@ const ReservationForm = () => {
     let newExtras: number[] = [...selectedExtras];
     // Remove IDs 9, 10, 11 if they exist
     newExtras = newExtras.filter(id => ![9, 10, 11].includes(id));
-    const pickupOther = island === "Island 3";
-    const dropoffOther = dropOff === "Island 3";
+    const pickupOther = island === "Other +25 Euro";
+    const dropoffOther = dropOff === "Other +25 Euro";
     if (pickupOther && dropoffOther) {
       newExtras.push(11);
     } else {
@@ -109,9 +109,9 @@ const ReservationForm = () => {
                 className="w-full h-[65px] p-3 px-6 border border-[#1c7fec] rounded-md focus:outline-none appearance-none bg-[#f8f8f8]"
               >
                 <option value="" disabled>Select location...</option>
-                <option value="Island 1">Mahe Airport</option>
-                <option value="Island 2">Cat Coco's Jetty</option>
-                <option value="Island 3">Other +25 Euro</option>
+                <option value="Mahe Airport">Mahe Airport</option>
+                <option value="Cat Coco's Jetty">Cat Coco's Jetty</option>
+                <option value="Other +25 Euro">Other +25 Euro</option>
               </select>
               <div className="absolute inset-y-0 -left-4 flex items-center pointer-events-none">
                 <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center">
@@ -130,9 +130,9 @@ const ReservationForm = () => {
                 className="w-full h-[65px] p-3 px-6 border border-[#1c7fec] rounded-md focus:outline-none appearance-none bg-[#f8f8f8]"
               >
                 <option value="" disabled>Select location...</option>
-                <option value="Island 1">Mahe Airport</option>
-                <option value="Island 2">Cat Coco's Jetty</option>
-                <option value="Island 3">Other +25 Euro</option>
+                <option value="Mahe Airport">Mahe Airport</option>
+                <option value="Cat Coco's Jetty">Cat Coco's Jetty</option>
+                <option value="Other +25 Euro">Other +25 Euro</option>
               </select>
               <div className="absolute inset-y-0 -left-4 flex items-center pointer-events-none">
                 <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center">
@@ -249,9 +249,9 @@ const ReservationForm = () => {
                 className="w-full appearance-none h-[65px] p-3 px-6 rounded-md focus:outline-none bg-[#f8f8f8]"
               >
                 <option value="" disabled>Select driver&apos;s age</option>
-                <option value="18-25">18-20</option>
-                <option value="26-35">21-70</option>
-                <option value="36-45">71-99</option>
+                <option value="18-21">18-21</option>
+                <option value="22-70">22-70</option>
+                <option value="70 and Above">70+</option>
               </select>
               <div className="absolute inset-y-0 -left-4 flex items-center pointer-events-none">
                 <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center">

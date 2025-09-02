@@ -103,3 +103,20 @@ h2 {
         font-size: 14px;
     }
 }
+/* Sortable table headers */
+th.sortable {
+  cursor: pointer;
+}
+
+th.sortable::after {
+  content: " ⇅"; /* default indicator */
+  font-weight: normal;
+}
+
+th.sortable.sort-asc::after {
+  content: " ↑"; /* ascending arrow */
+}
+
+th.sortable.sort-desc::after {
+  content: " ↓"; /* descending arrow */
+}
