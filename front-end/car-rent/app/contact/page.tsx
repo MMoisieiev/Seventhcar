@@ -9,6 +9,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Footer from "../components/Footer";
 import ReviewSummary, {
   BookingData,
@@ -16,11 +17,15 @@ import ReviewSummary, {
   ReservationExtra,
 } from "../components/ReviewSummary";
 
+
+
 type PaymentOption = "arrival" | "deposit" | "full" | "";
 
 const Contact = () => {
   const [openReview, setOpenReview] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<PaymentOption>("");
+  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
 
   // 1) Fetch extras list once (id, name, price)
   const [availableExtras, setAvailableExtras] = useState<AvailableExtra[]>([]);
@@ -82,8 +87,8 @@ const Contact = () => {
 
     let reservation: any = {};
     let selectedCar: any = {};
-    try { reservation = JSON.parse(resRaw || "{}"); } catch {}
-    try { selectedCar = JSON.parse(carRaw || "{}"); } catch {}
+    try { reservation = JSON.parse(resRaw || "{}"); } catch { }
+    try { selectedCar = JSON.parse(carRaw || "{}"); } catch { }
 
     // Map reservation.extras to ReservationExtra[]
     // From Insurance: extras may be [id], from Extras: [{id, qty}, ...]
@@ -137,22 +142,96 @@ const Contact = () => {
       id: "arrival" as const,
       title: "Pay on arrival",
       description:
-        "Pay for the rental upon pick up of the vehicle with cards (credit, debit) or cash.",
+        "Pay for the rental upon pick up of the vehicle with card or cash.",
+      disabled: false,
     },
     {
       id: "deposit" as const,
       title: "10% deposit payment",
       description:
-        "The rest of 90% will be paid once you receive the car but without the possibility of cancellation or/and refund.",
+        "Online deposit payment is coming soon. For now, please choose Pay on arrival.",
+      disabled: true,
     },
     {
       id: "full" as const,
       title: "100% full amount payment",
       description:
-        "Take advantage of the advance payment discount and keep the possibility of free cancellation and modification of the reservation up to 48 hours before the time of pick up.",
+        "Online full payment is coming soon. For now, please choose Pay on arrival.",
+      disabled: true,
     },
   ];
+  const submitReservation = async (confirmed: BookingData) => {
+    if (submitting) return;
 
+    if (!confirmed.firstName || !confirmed.lastName || !confirmed.email || !confirmed.phone) {
+      alert("Please fill in your name, email, and phone number.");
+      return;
+    }
+
+    if (!confirmed.plate_number) {
+      alert("No vehicle selected. Please go back and choose a vehicle.");
+      return;
+    }
+
+    if (!confirmed.start_date || !confirmed.start_time || !confirmed.end_date || !confirmed.end_time) {
+      alert("Reservation dates or times are missing. Please start again.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      const payload = {
+        customer_name: `${confirmed.firstName} ${confirmed.lastName}`.trim(),
+        customer_email: confirmed.email,
+        customer_phone: confirmed.phone,
+        flight_number: confirmed.flight_number || "",
+        plate_number: confirmed.plate_number,
+        start_date: confirmed.start_date,
+        start_time: confirmed.start_time,
+        end_date: confirmed.end_date,
+        end_time: confirmed.end_time,
+        total_price: confirmed.estimated_total,
+        status: "Pending",
+        payment_option: "arrival",
+        notes: confirmed.notes || "",
+        extras: (confirmed.extras || []).map((ex) => ({
+  extra_id: ex.extra_id,
+  days: ex.days || 1,
+  price_at_booking: Number(ex.price_at_booking || 0) * Number(ex.qty || 1),
+})),
+      };
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reservations`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || "Reservation could not be created.");
+      }
+
+      localStorage.removeItem("pendingReservation");
+localStorage.removeItem("selectedCar");
+
+router.push(
+  `/confirmation?id=${result.reservationId}&total=${confirmed.estimated_total}`
+);
+
+    
+
+    } catch (error: any) {
+      console.error("Reservation submit error:", error);
+      alert(error.message || "Something went wrong while creating the reservation.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
   return (
     <>
       <div className="px-4 md:px-10 py-10 mt-16">
@@ -242,12 +321,18 @@ const Contact = () => {
                 <div
                   key={opt.id}
                   onClick={() => {
+                    if (opt.disabled) return;
                     setSelectedPayment(opt.id);
                     setData((d) => ({ ...d, payment_option: opt.id }));
                   }}
-                  className={`relative rounded-xl p-6 cursor-pointer transition space-y-2 border
-                    ${isActive ? "bg-blue-500 text-white border-blue-600 shadow-lg"
-                               : "bg-gray-50 text-gray-900 hover:shadow-lg hover:border-blue-400"}`}
+                  className={`relative rounded-xl p-6 transition space-y-2 border
+  ${
+    opt.disabled
+      ? "bg-gray-200 text-gray-400 cursor-not-allowed opacity-70"
+      : isActive
+        ? "bg-blue-500 text-white border-blue-600 shadow-lg cursor-pointer"
+        : "bg-gray-50 text-gray-900 hover:shadow-lg hover:border-blue-400 cursor-pointer"
+  }`}
                 >
                   <h3 className={`font-extrabold text-lg ${isActive ? "text-white" : "text-gray-900"}`}>
                     {opt.title}
@@ -269,7 +354,7 @@ const Contact = () => {
               onClick={() => setOpenReview(true)}
               className={`px-6 py-3 rounded-xl font-bold transition
                 ${selectedPayment ? "bg-blue-600 text-white hover:bg-blue-700"
-                                  : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
             >
               Proceed to Confirmation
             </button>
@@ -286,10 +371,9 @@ const Contact = () => {
         initialData={data}                 // ← dates, car, extras are prefilled from storage
         availableExtras={availableExtras}
         onConfirm={(confirmed) => {
-          // Persist the final confirmation if you need, or go to payment
-          setData(confirmed);
-          setOpenReview(false);
-        }}
+  setData(confirmed);
+  submitReservation(confirmed);
+}}
       />
 
       <Footer />

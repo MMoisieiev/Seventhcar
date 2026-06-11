@@ -35,12 +35,6 @@
       <a class="nav-link font-weight-bold" href="#" style="font-size: 1.1rem;">Contact Us</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link font-weight-bold" href="#" style="font-size: 1.1rem;">Terms & Conditions</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link font-weight-bold" href="#" style="font-size: 1.1rem;">FAQ</a>
-    </li>
-    <li class="nav-item">
       <a class="nav-link font-weight-bold" href="#" style="font-size: 1.1rem;">About Us</a>
     </li>
     <li class="nav-item" id="login-item">

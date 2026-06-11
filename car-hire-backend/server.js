@@ -44,43 +44,41 @@ const db = mysql.createConnection({
   });
 //------------------------------------------------------------------------ROUTES-------------------------------------------------------
 // 1) Home Page (root path)
-app.get('/', (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            console.error("Error destroying session:", err);
-            // We can still serve the page. The user won't have a valid session anyway.
-        }
-        res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
-    });
+app.get("/", (req, res) => {
+  res.json({
+    service: "Seventh Car Hire Backend API",
+    status: "online",
+  });
 });
 
 // 2) Login Page
-app.get('/login', (req, res) => {
-    // login.html is your login page
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'login.html'));
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "pages", "login.html"));
 });
 
-// 3) Cars Page
-app.get('/cars', isAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'cars.html'));
+// 3) Admin Cars Page
+app.get("/cars", isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "pages", "cars.html"));
 });
 
-// 4) Reservations Page (Admin Side)
-app.get('/reservations', isAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'reservations.html'));
+// 4) Admin Reservations Page
+app.get("/reservations", isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "pages", "reservations.html"));
 });
-// calendar
-app.get('/calendar', isAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'calendar.html'));
+
+// 5) Admin Availability Calendar
+app.get("/calendar", isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "pages", "calendar.html"));
 });
-// 4)Booking Page (client Side)
-app.get('/bookingpage', (req, res) => {
-    // index.html is your home page
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'bookingpage.html'));
+
+// 6) Admin Extras Page
+app.get("/extras", isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "pages", "extras.html"));
 });
-app.get('/extras',isAuthenticated, (req, res) => {
-    // index.html is your home page
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'extras.html'));
+
+// Optional: redirect old backend client booking page to frontend
+app.get("/bookingpage", (req, res) => {
+  res.redirect(process.env.FRONTEND_URL || "http://localhost:3000");
 });
 
 
@@ -154,10 +152,15 @@ const reservationsRoutes = require("./routes/reservations");
 const extrasRoutes = require("./routes/extras");
 
 const cors = require('cors');
-app.use(cors({
-  origin: 'http://localhost:3000'
-}));
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 //-------------------------------------------------------------CALENDAR ---------------------------------------------------------------------------------------------
 app.use("/api/cars", carsRoutes(db, upload));
 app.use("/api/reservations", reservationsRoutes(db));

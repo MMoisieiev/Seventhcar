@@ -4,20 +4,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ---------- Helpers ----------
   function ordinal(n){const s=["th","st","nd","rd"],v=n%100;return s[(v-20)%10]||s[v]||s[0];}
-  function formatDateLong(dateLike){
-    const d=new Date(dateLike);
-    if(Number.isNaN(d.getTime())) return dateLike || "";
-    const day=d.getDate(), month=d.toLocaleString("en-GB",{month:"long"}), year=d.getFullYear();
-    return `${day}${ordinal(day)} ${month} ${year}`;
-  }
-  function daysBetween(start, end) {
-    const s=new Date(start), e=new Date(end);
-    return Math.max(1, Math.ceil((e - s) / (1000*60*60*24)));
-  }
+  function parseDateOnly(dateLike) {
+  if (!dateLike) return null;
+
+  const dateStr = String(dateLike).split("T")[0];
+  const [year, month, day] = dateStr.split("-").map(Number);
+
+  if (!year || !month || !day) return null;
+
+  // Important: creates LOCAL date, not UTC date
+  return new Date(year, month - 1, day);
+}
+
+function formatDateLong(dateLike) {
+  const d = parseDateOnly(dateLike);
+  if (!d || Number.isNaN(d.getTime())) return dateLike || "";
+
+  const day = d.getDate();
+  const month = d.toLocaleString("en-GB", { month: "long" });
+  const year = d.getFullYear();
+
+  return `${day}${ordinal(day)} ${month} ${year}`;
+}
+
+function daysBetween(start, end) {
+  const s = parseDateOnly(start);
+  const e = parseDateOnly(end);
+
+  if (!s || !e) return 1;
+
+  return Math.max(1, Math.ceil((e - s) / (1000 * 60 * 60 * 24)));
+}
   function normalize(str){ return (str||"").toString().toLowerCase().trim(); }
 
   // ---------- Page State ----------
-  let ALL = [];                       // cache of all reservations
+  let ALL = [];                       // cache of all reservations  
+  let renderVersion = 0;
   let statusFilter = "";              // "", "Pending", etc.
   let searchTerm = "";                // user search
   let sortKey = null;                 // "start_date" | "end_date" | null
@@ -31,9 +53,16 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------- Rendering ----------
   function buildExtrasDropdown(extras, diffDays) {
     const options = extras.map(extra => {
-      const price = (extra.price_at_booking ?? extra.price ?? 0) * diffDays;
-      return `<option>${extra.extra_id} | Days: ${diffDays} | €${price.toFixed(2)}</option>`;
-    }).join("");
+  const price = (extra.price_at_booking ?? extra.price ?? 0) * diffDays;
+
+  return `
+    <option>
+      ${extra.name}
+      | ${diffDays} day(s)
+      | €${price.toFixed(2)}
+    </option>
+  `;
+}).join("");
     return `<select class="form-control form-control-sm">${options || "<option>No extras</option>"}</select>`;
   }
 
@@ -91,25 +120,37 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   async function renderTable() {
-    tableBody.innerHTML = "";
-    const list = applyFiltersSort(ALL);
+  const myRender = ++renderVersion;
 
-    // Render rows; fetch extras for each reservation (keeps dropdown correct)
-    for (const reservation of list) {
-      try {
-        const res = await fetch(`/api/reservations/${reservation.id}/extras`);
-        const extras = await res.json();
-        const diff = daysBetween(reservation.start_date, reservation.end_date);
-        const dropdown = buildExtrasDropdown(extras, diff);
+  tableBody.innerHTML = "";
+  const list = applyFiltersSort(ALL);
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = renderRow(reservation, dropdown);
-        tableBody.appendChild(tr);
-      } catch (e) {
-        console.error("Error fetching extras:", e);
-      }
+  for (const reservation of list) {
+    if (myRender !== renderVersion) return;
+
+    try {
+      const res = await fetch(`/api/reservations/${reservation.id}/extras`);
+      const extras = await res.json();
+
+      const diff = calculateBookingDays(
+        reservation.start_date,
+        reservation.start_time,
+        reservation.end_date,
+        reservation.end_time
+      );
+
+      const dropdown = buildExtrasDropdown(extras, diff);
+
+      if (myRender !== renderVersion) return;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = renderRow(reservation, dropdown);
+      tableBody.appendChild(tr);
+    } catch (e) {
+      console.error("Error fetching extras:", e);
     }
   }
+}
 
   // ---------- Data load ----------
   window.fetchReservations = async function fetchReservations() {
@@ -157,7 +198,19 @@ document.addEventListener("DOMContentLoaded", function () {
       renderTable();
     }, 200);
   });
+  
+function calculateBookingDays(startDateStr, startTimeStr, endDateStr, endTimeStr) {
+  const startDate = new Date(`${startDateStr}T00:00:00`);
+  const endDate = new Date(`${endDateStr}T00:00:00`);
 
+  let days = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+  if (endTimeStr > startTimeStr) {
+    days += 1;
+  }
+
+  return Math.max(1, days);
+}
   // ----- Sorting by date headers -----
   function clearSortHeaderStyles() {
     sortableHeaders.forEach(h => h.classList.remove("sort-asc","sort-desc"));

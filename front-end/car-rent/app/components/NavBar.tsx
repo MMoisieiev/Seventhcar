@@ -35,9 +35,6 @@ const NavBar: React.FC = () => {
             {[
               { label: "Home", path: "/" },
               { label: "Vehicles", path: "/vehicles" },
-              { label: "Offers", path: "/offers" },
-              { label: "News", path: "/news" },
-              { label: "Transfers", path: "/transfers" },
               { label: "FAQ", path: "/faq" }
             ].map((item) => (
               <Link

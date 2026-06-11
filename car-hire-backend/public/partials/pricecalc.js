@@ -1,44 +1,56 @@
 // pricecalc.js
 
+function calculateBookingDays(startDateStr, startTimeStr, endDateStr, endTimeStr) {
+  const startDate = new Date(`${startDateStr}T00:00:00`);
+  const endDate = new Date(`${endDateStr}T00:00:00`);
 
-let leftoverAlertShown = false;
+  let days = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+  if (endTimeStr > startTimeStr) {
+    days += 1;
+  }
+
+  return Math.max(1, days);
+}
+
+function getTierMultiplier(dayCount) {
+  if (dayCount === 1) return 1.5;
+  if (dayCount >= 2 && dayCount <= 3) return 1.25;
+  if (dayCount >= 4 && dayCount <= 6) return 1.11;
+  if (dayCount >= 7 && dayCount <= 10) return 1.0;
+  if (dayCount >= 11 && dayCount <= 14) return 0.9;
+  if (dayCount >= 15 && dayCount <= 21) return 0.8;
+  return 0.7;
+}
 
 function registerPriceAutoCalc() {
-  // existing listeners
-  ["editPlateNumber","editStartDate","editStartTime","editEndDate","editEndTime"]
+  ["editPlateNumber", "editStartDate", "editStartTime", "editEndDate", "editEndTime"]
     .map(id => document.getElementById(id))
-    .filter(el => !!el)
+    .filter(Boolean)
     .forEach(el => el.addEventListener("change", autoCalculatePrice));
 
-  // new: re-calc whenever extras are toggled …
   document.querySelectorAll(".extra-checkbox")
     .forEach(chk => chk.addEventListener("change", autoCalculatePrice));
 
-  // … or their “days” inputs are edited
-  document.querySelectorAll("[id^='extra-days-']")
-    .forEach(input => input.addEventListener("input", autoCalculatePrice));
-
-  // and do one initial calculation on modal open
   autoCalculatePrice();
 }
 
 async function autoCalculatePrice() {
-  const priceField    = document.getElementById("editTotalPrice");
-  const plateNumber   = document.getElementById("editPlateNumber").value.trim();
-  const startDateStr  = document.getElementById("editStartDate").value;
-  const startTimeStr  = document.getElementById("editStartTime").value;
-  const endDateStr    = document.getElementById("editEndDate").value;
-  const endTimeStr    = document.getElementById("editEndTime").value;
+  const priceField = document.getElementById("editTotalPrice");
+  const plateNumber = document.getElementById("editPlateNumber").value.trim();
+  const startDateStr = document.getElementById("editStartDate").value;
+  const startTimeStr = document.getElementById("editStartTime").value;
+  const endDateStr = document.getElementById("editEndDate").value;
+  const endTimeStr = document.getElementById("editEndTime").value;
 
   const reservationIdEl = document.getElementById("editReservationId");
   const reservationId = reservationIdEl ? reservationIdEl.value : null;
 
-  if (!plateNumber || !startDateStr || !startTimeStr || !endDateStr || !endTimeStr) {
-    return;
-  }
+  if (!plateNumber || !startDateStr || !startTimeStr || !endDateStr || !endTimeStr) return;
 
-  const startDT = new Date(`${startDateStr}T${startTimeStr}`);
-  const endDT   = new Date(`${endDateStr}T${endTimeStr}`);
+  const startDT = parseLocalDateTime(startDateStr, startTimeStr);
+  const endDT = parseLocalDateTime(endDateStr, endTimeStr);
+
   if (endDT <= startDT) return;
 
   if (await checkIfDatesConflict(plateNumber, startDT, endDT, reservationId)) {
@@ -47,59 +59,53 @@ async function autoCalculatePrice() {
   }
 
   let dailyRate = 0;
+
   try {
-    const res = await fetch(`/api/cars/${plateNumber}`);
-    if (res.ok) dailyRate = (await res.json()).price || 0;
+    const res = await fetch(`/api/cars/${encodeURIComponent(plateNumber)}`);
+    if (res.ok) {
+      const car = await res.json();
+      dailyRate = Number(car.price || 0);
+    }
   } catch (e) {
     console.warn("Failed to fetch car rate:", e);
   }
 
-  // Corrected inclusive day calculation:
-  const dayCount = Math.ceil((endDT - startDT) / (1000 * 60 * 60 * 24)) + 1;
+  const dayCount = calculateBookingDays(startDateStr, startTimeStr, endDateStr, endTimeStr);
+  const multiplier = getTierMultiplier(dayCount);
 
-  // Multiplier logic (unchanged)
-  let multiplier = 1;
-  if (dayCount === 1) multiplier = 1.5;
-  else if (dayCount > 1 && dayCount < 4) multiplier = 1.25;
-  else if (dayCount >= 4 && dayCount < 7) multiplier = 1.11;
-  else if (dayCount >= 7 && dayCount < 11) multiplier = 1.0;
-  else if (dayCount >= 11 && dayCount < 15) multiplier = 0.9;
-  else if (dayCount >= 15 && dayCount < 22) multiplier = 0.8;
-  else if (dayCount >= 22) multiplier = 0.7;
-
-  // Compute extras (unchanged)
   let extrasTotal = 0;
+
   document.querySelectorAll(".extra-checkbox:checked").forEach(chk => {
-    const perDayCost = Number(
-      document.getElementById(`extra-price-${chk.value}`).dataset.price
-    );
+    const priceEl = document.getElementById(`extra-price-${chk.value}`);
+    const perDayCost = Number(priceEl?.dataset?.price || 0);
     extrasTotal += perDayCost * dayCount;
   });
 
-  // Final corrected price calculation
   const carPrice = dayCount * dailyRate * multiplier;
-  priceField.value = (carPrice + extrasTotal).toFixed(2);
+  const finalPrice = carPrice + extrasTotal;
+
+  priceField.value = finalPrice.toFixed(2);
 }
 
 function parseLocalDateTime(dateStr, timeStr) {
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const [hours, minutes] = timeStr.split(':').map(Number);
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const [hours, minutes] = timeStr.split(":").map(Number);
   return new Date(year, month - 1, day, hours, minutes);
 }
 
 async function checkIfDatesConflict(plateNumber, startDT, endDT, selfId = null) {
   try {
-    const res = await fetch(`/api/reservations?plate_number=${plateNumber}`);
+    const res = await fetch(`/api/reservations?plate_number=${encodeURIComponent(plateNumber)}`);
     if (!res.ok) return false;
+
     const list = await res.json();
 
     return list.some(r => {
-      if (selfId && r.id == selfId) return false;
+      if (selfId && String(r.id) === String(selfId)) return false;
 
       const rStart = parseLocalDateTime(r.start_date, r.start_time);
-      const rEnd   = parseLocalDateTime(r.end_date, r.end_time);
+      const rEnd = parseLocalDateTime(r.end_date, r.end_time);
 
-      // Ensures no overlapping reservation
       return startDT < rEnd && rStart < endDT;
     });
   } catch (e) {
@@ -108,7 +114,7 @@ async function checkIfDatesConflict(plateNumber, startDT, endDT, selfId = null) 
   }
 }
 
-
-// expose globally
-window.registerPriceAutoCalc  = registerPriceAutoCalc;
-window.autoCalculatePrice     = autoCalculatePrice;
+window.registerPriceAutoCalc = registerPriceAutoCalc;
+window.autoCalculatePrice = autoCalculatePrice;
+window.calculateBookingDays = calculateBookingDays;
+window.getTierMultiplier = getTierMultiplier;

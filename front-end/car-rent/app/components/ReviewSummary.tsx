@@ -83,12 +83,24 @@ function mergeData(fetched: Partial<BookingData>, initial?: Partial<BookingData>
 }
 
 /* ---------- Price helpers (same logic as admin) ---------- */
-function inclusiveDays(startISO: string, endISO: string) {
-  if (!startISO || !endISO) return 0;
-  const s = new Date(startISO).getTime();
-  const e = new Date(endISO).getTime();
-  if (e < s) return 0;
-  return Math.ceil((e - s) / (1000 * 60 * 60 * 24)) + 1; // inclusive
+function calculateBookingDays(
+  startDate: string,
+  startTime: string,
+  endDate: string,
+  endTime: string
+) {
+  if (!startDate || !startTime || !endDate || !endTime) return 0;
+
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+
+  let days = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+  if (endTime > startTime) {
+    days += 1;
+  }
+
+  return Math.max(1, days);
 }
 function tierMultiplier(dayCount: number) {
   if (dayCount <= 0) return 1;
@@ -142,9 +154,9 @@ export default function ReviewSummary({
 
   // days
   const dayCount = useMemo(
-    () => inclusiveDays(data.start_date, data.end_date),
-    [data.start_date, data.end_date]
-  );
+  () => calculateBookingDays(data.start_date, data.start_time, data.end_date, data.end_time),
+  [data.start_date, data.start_time, data.end_date, data.end_time]
+);
 
   // daily rate from plate_number
   const [dailyRate, setDailyRate] = useState(0);
@@ -152,7 +164,7 @@ export default function ReviewSummary({
     (async () => {
       if (!data.plate_number) { setDailyRate(0); return; }
       try {
-        const res = await fetch(`/api/cars/${encodeURIComponent(data.plate_number)}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cars/${encodeURIComponent(data.plate_number)}`);
         if (res.ok) {
           const car = await res.json();
           setDailyRate(Number(car.price || 0));
@@ -331,16 +343,25 @@ export default function ReviewSummary({
         <div className="p-6 border-t flex items-center justify-end gap-3">
           <button onClick={onClose} className="px-5 py-2 rounded-lg bg-gray-200">Back</button>
           <button
-            onClick={() => onConfirm(data)}
+            onClick={() =>
+  onConfirm({
+    ...data,
+    estimated_total: estimated,
+    extras: data.extras.map((ex) => ({
+      ...ex,
+      days: dayCount,
+    })),
+  })
+}
             className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
           >
-            {mode === "edit" ? "Save Changes" : "Confirm & Continue to Payment"}
+            {mode === "edit" ? "Save Changes" : "Confirm Reservation"}
           </button>
         </div>
       </div>
     </div>
   );
-}
+} 
 
 /* ---------- Small inputs ---------- */
 function LabeledInput({

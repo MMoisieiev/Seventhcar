@@ -10,6 +10,29 @@ module.exports = (db) => {
     const dd   = String(dateObj.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
+function calculateBookingDays(startDate, startTime, endDate, endTime) {
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+
+  let days =
+    Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+  if (endTime > startTime) {
+    days += 1;
+  }
+
+  return Math.max(1, days);
+}
+
+function getTierMultiplier(days) {
+  if (days === 1) return 1.5;
+  if (days <= 3) return 1.25;
+  if (days <= 6) return 1.11;
+  if (days <= 10) return 1.0;
+  if (days <= 14) return 0.9;
+  if (days <= 21) return 0.8;
+  return 0.7;
+} 
 
 router.get('/availability', (req, res) => {
   const yearParam = parseInt(req.query.year, 10);
@@ -103,8 +126,8 @@ router.get('/availability', (req, res) => {
       return res.status(500).json({ error: "Server error" });
     }
     results.forEach((row) => {
-      if (row.start_date) row.start_date = row.start_date.toISOString().split("T")[0];
-      if (row.end_date) row.end_date = row.end_date.toISOString().split("T")[0];
+if (row.start_date) row.start_date = formatDate(row.start_date);
+if (row.end_date) row.end_date = formatDate(row.end_date);
     });
     res.json(results);
   });
@@ -122,28 +145,39 @@ router.get('/availability', (req, res) => {
         return res.status(404).json({ error: "Reservation not found" });
       }
       const reservation = results[0];
-      reservation.start_date = reservation.start_date.toISOString().split("T")[0];
-      reservation.end_date = reservation.end_date.toISOString().split("T")[0];
+      reservation.start_date = formatDate(reservation.start_date);
+      reservation.end_date = formatDate(reservation.end_date);
       res.json(reservation);
     });
   });
 
   //get extras 
   router.get("/:id/extras", (req, res) => {
-    const reservationId = req.params.id;
-    db.query(`
-      SELECT extra_id, days, price_at_booking FROM reservation_extras 
-      WHERE reservation_id = ?`, 
-      [reservationId],
-      (err, results) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({error: "Error fetching extras"});
-        }
-        res.json(results);
+  const reservationId = req.params.id;
+
+  db.query(
+    `
+    SELECT
+      re.extra_id,
+      e.name,
+      re.days,
+      re.price_at_booking
+    FROM reservation_extras re
+    LEFT JOIN extras e
+      ON re.extra_id = e.id
+    WHERE re.reservation_id = ?
+    `,
+    [reservationId],
+    (err, results) => {
+      if (err) {
+        console.error("Error fetching reservation extras:", err);
+        return res.status(500).json({ error: "Error fetching extras" });
       }
-    );
-  });
+
+      res.json(results);
+    }
+  );
+});
   // POST /api/reservations
   router.post("/", (req, res) => {
     const {

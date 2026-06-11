@@ -14,27 +14,29 @@ module.exports = (db, upload) => {
   // ------------------------------------------
   // 1) /api/cars/available
   // ------------------------------------------
-  router.get("/available", (req, res) => {
-    const { startDate, endDate } = req.query;
-    if (!startDate || !endDate) {
-      return res.status(400).json({ error: "Missing startDate or endDate" });
+ router.get("/available", (req, res) => {
+  const { startDate, endDate } = req.query;
+  if (!startDate || !endDate) {
+    return res.status(400).json({ error: "Missing startDate or endDate" });
+  }
+
+  const sql = `
+    SELECT * FROM cars 
+    WHERE plate_number NOT IN (
+      SELECT plate_number FROM reservations
+      WHERE (start_date <= ? AND end_date >= ?)
+      AND status IN ('Pending', 'Approved')
+    )
+  `;
+
+  db.query(sql, [endDate, startDate], (err, results) => {
+    if (err) {
+      console.error("GET /api/cars/available error:", err);
+      return res.status(500).send(err.message);
     }
-    const sql = `
-      SELECT * FROM cars 
-      WHERE plate_number NOT IN (
-        SELECT plate_number FROM reservations
-        WHERE (start_date <= ? AND end_date >= ?)
-        AND status IN ('Pending', 'Approved')
-      )
-    `;
-    db.query(sql, [endDate, startDate], (err, results) => {
-      if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({ error: "Server error" });
-      }
-      res.json(results);
-    });
+    res.json(results);
   });
+});
 
   // ------------------------------------------
   // 2) /api/cars/availability
@@ -199,13 +201,14 @@ module.exports = (db, upload) => {
   // 6) GET /api/cars
   // ------------------------------------------
   router.get("/", (req, res) => {
-    db.query("SELECT * FROM cars", (err, results) => {
-      if (err) {
-        return res.status(500).send("Server error");
-      }
-      res.json(results);
-    });
+  db.query("SELECT * FROM cars", (err, results) => {
+    if (err) {
+      console.error("GET /api/cars error:", err);
+      return res.status(500).send(err.message);
+    }
+    res.json(results);
   });
+});
 
   // ------------------------------------------
   // 7) GET /api/cars/:plateNumber

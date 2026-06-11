@@ -71,7 +71,6 @@ const ReservationForm = () => {
     // Save reservation locally (for payment step later)
     const reservation = { island, dropOff, pickupDate, pickupTime, returnDate, returnTime, driverAge, extras: selectedExtras }
     localStorage.setItem("pendingReservation", JSON.stringify(reservation))
-    alert("Reservation info saved! Proceed to payment.")
     router.push("/vehicles");
   }
 

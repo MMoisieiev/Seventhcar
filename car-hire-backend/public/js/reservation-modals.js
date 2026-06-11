@@ -54,15 +54,28 @@ document.addEventListener("DOMContentLoaded", function () {
           document.getElementById("modalStatus").innerText = reservation.status;
     
           fetch(`/api/reservations/${reservationId}/extras`)
-            .then(res => res.json())
-            .then(extras => {
-              const dropdown = document.getElementById("extrasDropdown");
-              dropdown.innerHTML = extras.map(extra => `
-                <option>
-                  ${extra.extra_id} | Days: ${extra.days} | €${extra.price_at_booking}
-                </option>
-              `).join('');
-            });
+  .then(res => res.json())
+  .then(extras => {
+    const dropdown = document.getElementById("extrasDropdown");
+
+    const start = new Date(`${reservation.start_date}T00:00:00`);
+    const end = new Date(`${reservation.end_date}T00:00:00`);
+    const diffDays = Math.max(
+      1,
+      Math.ceil((end - start) / (1000 * 60 * 60 * 24))
+    );
+
+    dropdown.innerHTML = extras.map(extra => {
+      const name = extra.name || `Extra ${extra.extra_id}`;
+      const price = Number(extra.price_at_booking || 0) * diffDays;
+
+      return `
+        <option>
+          ${name} | ${diffDays} day(s) | €${price.toFixed(2)}
+        </option>
+      `;
+    }).join('');
+  });
     
           document.getElementById("approveReservation").setAttribute("data-id", reservation.id);
           document.getElementById("rejectReservation").setAttribute("data-id", reservation.id);

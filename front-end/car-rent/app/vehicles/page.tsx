@@ -24,7 +24,7 @@ const Vehicles = () => {
       price_per_day_eur: car.price_per_day_eur,
       model: car.model, // (optional)
     }));
-    router.push("/insurance");
+    router.push("/");
   };
   useEffect(() => {
   let fetchUrl = `${process.env.NEXT_PUBLIC_API_URL}/cars`;
@@ -45,22 +45,36 @@ const Vehicles = () => {
   console.log("Fetching from:", fetchUrl);
 
   fetch(fetchUrl)
-    .then((res) => res.json())
-    .then((data) => {
-      const mappedCars = data.map(car => ({
-        model: car.car_name,
-        category: "",
-        image: car.car_image_url ? `http://localhost:3001/uploads/${car.car_image_url}` : "/no-image.png",
-        fuel: car.fuel_type,
-        doors: car.door_count,
-        price_per_day_eur: car.price,
-        plate_number: car.plate_number,
-      }));
-      setCars(mappedCars);
-    })
-    .catch((err) => {
-      console.error("Failed to fetch cars:", err);
-    });
+  .then(async (res) => {
+    const text = await res.text();
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error(`Response was not valid JSON: ${text}`);
+    }
+  })
+  .then((data) => {
+    const mappedCars = data.map((car: any) => ({
+      model: car.car_name,
+      category: "",
+      image: car.car_image_url
+        ? `http://localhost:3001/uploads/${car.car_image_url}`
+        : "/no-image.png",
+      fuel: car.fuel_type,
+      doors: car.door_count,
+      price_per_day_eur: car.price,
+      plate_number: car.plate_number,
+    }));
+    setCars(mappedCars);
+  })
+  .catch((err) => {
+    console.error("Failed to fetch cars:", err);
+  });
     
 
 }, []);

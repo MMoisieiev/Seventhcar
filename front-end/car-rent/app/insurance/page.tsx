@@ -102,7 +102,15 @@ const Insurance = () => {
 
   const handleSelectProtection = (protectionId: number) => {
     const reservation = JSON.parse(localStorage.getItem("pendingReservation") || "{}");
-    reservation.extras = [protectionId];
+    const currentExtras = Array.isArray(reservation.extras) ? reservation.extras : [];
+
+// remove only old insurance IDs: 1, 2, 3
+const withoutOldInsurance = currentExtras.filter((ex: any) => {
+  const id = typeof ex === "number" ? ex : Number(ex?.id);
+  return ![1, 2, 3].includes(id);
+});
+
+reservation.extras = [...withoutOldInsurance, protectionId];
     localStorage.setItem("pendingReservation", JSON.stringify(reservation));
     router.push("/extras");
   };
